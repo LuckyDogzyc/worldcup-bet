@@ -54,7 +54,7 @@ export default function AdminPage() {
       fetch('/api/matches').then((r) => r.json()),
     ]).then(([userData, matchData]) => {
       if (!userData?.user || userData.user.is_admin !== 1) {
-        router.push('/');
+        window.location.href = '/';
         return;
       }
       setIsAdmin(true);

@@ -31,8 +31,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/');
-      router.refresh();
+      // Use window.location for reliable redirect in Next.js 16
+      window.location.href = '/';
     } catch {
       setError('网络错误，请稍后再试');
     } finally {
