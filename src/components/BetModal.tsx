@@ -11,14 +11,20 @@ interface BetModalProps {
   onSuccess: (newBalance: number) => void;
 }
 
+function priceToOdds(price: number): string {
+  if (price <= 0) return '0';
+  return (1 / price).toFixed(2);
+}
+
 export default function BetModal({ matchInfo, marketInfo, option, balance, onClose, onSuccess }: BetModalProps) {
   const [amount, setAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const shares = amount > 0 ? amount / option.price : 0;
-  const estimatedReturn = shares; // Each share pays $1 if correct
+  const odds = 1 / option.price; // e.g. price=0.45 → odds=2.22
+  const estimatedReturn = amount * odds; // 投$10 × 2.22 = $22.22
+  const estimatedProfit = estimatedReturn - amount; // 净利润
   const isValid = amount > 0 && amount <= balance;
 
   useEffect(() => {
@@ -63,7 +69,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
 
   const getMarketLabel = (type: string) => {
     switch (type) {
-      case '1x2': return '1x2 胜负';
+      case '1x2': return '胜负';
       case 'ou25': return '大小球';
       case 'cs': return '正确比分';
       default: return type;
@@ -72,19 +78,13 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
-      {/* Modal */}
       <div
         className="relative w-full max-w-md glass-card border-gold/30 animate-slide-up overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Gold top accent */}
         <div className="h-1 bg-gradient-to-r from-gold-dark via-gold to-gold-light" />
-
         <div className="p-6">
-          {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-bold text-white">🎯 下注确认</h3>
@@ -118,11 +118,11 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                   <span className="text-gold font-bold">{option.label}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/50">当前价格</span>
-                  <span className="text-white font-medium">${option.price.toFixed(2)} / 股</span>
+                  <span className="text-white/50">赔率</span>
+                  <span className="text-gold font-bold text-base">{priceToOdds(option.price)} 倍</span>
                 </div>
                 <div className="text-xs text-white/40 pt-1 border-t border-white/10">
-                  💡 如果「{option.label}」正确，每股结算 $1.00
+                  💡 投 $1 → 赢了得 ${priceToOdds(option.price)}
                 </div>
               </div>
 
@@ -142,7 +142,6 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                   />
                 </div>
 
-                {/* Quick select buttons */}
                 <div className="flex gap-2 mt-2">
                   {quickAmounts.map((qa) => (
                     <button
@@ -155,7 +154,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                     </button>
                   ))}
                   <button
-                    onClick={() => setAmount(balance)}
+                    onClick={() => setAmount(Math.floor(balance))}
                     className="flex-1 py-1.5 text-xs rounded-md bg-gold/20 hover:bg-gold/30 text-gold font-medium transition-all"
                   >
                     全部
@@ -167,20 +166,20 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
               {amount > 0 && (
                 <div className="bg-white/5 rounded-lg p-3 mb-4 text-sm space-y-1.5 animate-fade-in">
                   <div className="flex justify-between">
-                    <span className="text-white/50">投入金额</span>
+                    <span className="text-white/50">投入</span>
                     <span className="text-white">${amount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">当前价格</span>
-                    <span className="text-white">${option.price.toFixed(2)} / 股</span>
+                    <span className="text-white/50">赔率</span>
+                    <span className="text-gold font-bold">{priceToOdds(option.price)} 倍</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">预计获得</span>
-                    <span className="text-white font-medium">{shares.toFixed(2)} 股</span>
+                    <span className="text-white/50">赢了收回</span>
+                    <span className="text-white font-medium">${estimatedReturn.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between border-t border-white/10 pt-1.5">
-                    <span className="text-white/50">预计收益</span>
-                    <span className="text-gold font-bold">${estimatedReturn.toFixed(2)}</span>
+                    <span className="text-white/50">净赚</span>
+                    <span className="text-green-400 font-bold">+${estimatedProfit.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/50">可用余额</span>
@@ -191,14 +190,12 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                 </div>
               )}
 
-              {/* Error */}
               {error && (
                 <div className="bg-red-500/15 border border-red-500/30 rounded-lg px-4 py-2 text-red-300 text-sm mb-4">
                   {error}
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 onClick={handleSubmit}
                 disabled={!isValid || loading}

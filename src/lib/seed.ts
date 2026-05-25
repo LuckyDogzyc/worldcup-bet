@@ -1,4 +1,22 @@
-import { getDb, initDB } from './db';
+import { getDb } from './db';
+
+interface TournamentSeed {
+  name: string;
+  slug: string;
+  icon: string;
+  sport: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  sort_order: number;
+}
+
+const TOURNAMENTS: TournamentSeed[] = [
+  { name: '2026 FIFA 世界杯', slug: 'worldcup-2026', icon: '⚽', sport: 'football', start_date: '2026-06-11', end_date: '2026-07-19', status: 'upcoming', sort_order: 1 },
+  { name: '欧冠决赛 2026', slug: 'ucl-final-2026', icon: '🏅', sport: 'football', start_date: '2026-05-30', end_date: '2026-05-30', status: 'upcoming', sort_order: 2 },
+  { name: '法网 2026', slug: 'roland-garros-2026', icon: '🎾', sport: 'tennis', start_date: '2026-05-24', end_date: '2026-06-07', status: 'live', sort_order: 3 },
+  { name: 'NBA 总决赛 2026', slug: 'nba-finals-2026', icon: '🏀', sport: 'basketball', start_date: '2026-06-04', end_date: '2026-06-22', status: 'upcoming', sort_order: 4 },
+];
 
 interface MatchSeed {
   home_team: string;
@@ -8,32 +26,38 @@ interface MatchSeed {
   status: string;
   result_home: number | null;
   result_away: number | null;
+  tournament_slug: string;
 }
 
 const MATCHES: MatchSeed[] = [
-  { home_team: 'Switzerland', away_team: 'Italy', round_name: 'Round of 16', kickoff_time: '2024-06-29T18:00:00Z', status: 'finished', result_home: 2, result_away: 0 },
-  { home_team: 'Germany', away_team: 'Denmark', round_name: 'Round of 16', kickoff_time: '2024-06-29T21:00:00Z', status: 'finished', result_home: 2, result_away: 0 },
-  { home_team: 'England', away_team: 'Slovakia', round_name: 'Round of 16', kickoff_time: '2024-06-30T18:00:00Z', status: 'finished', result_home: 2, result_away: 1 },
-  { home_team: 'Spain', away_team: 'Georgia', round_name: 'Round of 16', kickoff_time: '2024-06-30T21:00:00Z', status: 'finished', result_home: 4, result_away: 1 },
-  { home_team: 'France', away_team: 'Belgium', round_name: 'Round of 16', kickoff_time: '2024-07-01T18:00:00Z', status: 'finished', result_home: 1, result_away: 0 },
-  { home_team: 'Portugal', away_team: 'Slovenia', round_name: 'Round of 16', kickoff_time: '2024-07-01T21:00:00Z', status: 'finished', result_home: 0, result_away: 0 },
-  { home_team: 'Romania', away_team: 'Netherlands', round_name: 'Round of 16', kickoff_time: '2024-07-02T18:00:00Z', status: 'finished', result_home: 0, result_away: 3 },
-  { home_team: 'Austria', away_team: 'Turkey', round_name: 'Round of 16', kickoff_time: '2024-07-02T21:00:00Z', status: 'finished', result_home: 1, result_away: 2 },
-  { home_team: 'Spain', away_team: 'Germany', round_name: 'Quarter-final', kickoff_time: '2024-07-05T18:00:00Z', status: 'upcoming', result_home: null, result_away: null },
-  { home_team: 'Portugal', away_team: 'France', round_name: 'Quarter-final', kickoff_time: '2024-07-05T21:00:00Z', status: 'upcoming', result_home: null, result_away: null },
-  { home_team: 'Netherlands', away_team: 'Turkey', round_name: 'Quarter-final', kickoff_time: '2024-07-06T18:00:00Z', status: 'upcoming', result_home: null, result_away: null },
-  { home_team: 'England', away_team: 'Switzerland', round_name: 'Quarter-final', kickoff_time: '2024-07-06T21:00:00Z', status: 'upcoming', result_home: null, result_away: null },
-  { home_team: 'Spain', away_team: 'France', round_name: 'Semi-final', kickoff_time: '2024-07-09T21:00:00Z', status: 'upcoming', result_home: null, result_away: null },
-  { home_team: 'England', away_team: 'Netherlands', round_name: 'Semi-final', kickoff_time: '2024-07-10T21:00:00Z', status: 'upcoming', result_home: null, result_away: null },
-  { home_team: 'Spain', away_team: 'England', round_name: 'Final', kickoff_time: '2024-07-14T21:00:00Z', status: 'upcoming', result_home: null, result_away: null },
+  // === 欧冠决赛 (May 30, Budapest) ===
+  { home_team: '皇家马德里', away_team: '曼城', round_name: '决赛 · 布达佩斯', kickoff_time: '2026-05-30T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'ucl-final-2026' },
+
+  // === 法网决赛 (June 6-7, Paris) ===
+  { home_team: '阿尔卡拉斯', away_team: '辛纳', round_name: '男单决赛', kickoff_time: '2026-06-07T15:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'roland-garros-2026' },
+  { home_team: '斯瓦泰克', away_team: '高芙', round_name: '女单决赛', kickoff_time: '2026-06-06T15:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'roland-garros-2026' },
+
+  // === NBA 总决赛 ===
+  { home_team: '雷霆', away_team: '凯尔特人', round_name: 'G1', kickoff_time: '2026-06-05T20:30:00-04:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'nba-finals-2026' },
+  { home_team: '雷霆', away_team: '凯尔特人', round_name: 'G2', kickoff_time: '2026-06-08T20:30:00-04:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'nba-finals-2026' },
+  { home_team: '凯尔特人', away_team: '雷霆', round_name: 'G3', kickoff_time: '2026-06-11T20:30:00-04:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'nba-finals-2026' },
+
+  // === 2026 FIFA 世界杯小组赛 ===
+  { home_team: '墨西哥', away_team: '待定', round_name: '开幕战 · A组', kickoff_time: '2026-06-11T18:00:00-06:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '美国', away_team: '待定', round_name: 'C组 · 第1轮', kickoff_time: '2026-06-12T19:30:00-07:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '加拿大', away_team: '待定', round_name: 'B组 · 第1轮', kickoff_time: '2026-06-12T19:30:00-04:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '阿根廷', away_team: '待定', round_name: 'D组 · 第1轮', kickoff_time: '2026-06-13T19:30:00-05:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '巴西', away_team: '待定', round_name: 'E组 · 第1轮', kickoff_time: '2026-06-14T15:00:00-03:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '法国', away_team: '待定', round_name: 'F组 · 第1轮', kickoff_time: '2026-06-14T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '英格兰', away_team: '待定', round_name: 'G组 · 第1轮', kickoff_time: '2026-06-15T17:00:00+01:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '德国', away_team: '待定', round_name: 'H组 · 第1轮', kickoff_time: '2026-06-15T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
 ];
 
-// 每种盘口的选项和默认价格
 interface OptionDef { label: string; price: number }
 
 const MARKET_DEFS: Record<string, { description: string; options: OptionDef[] }> = {
   '1x2': {
-    description: '胜负平',
+    description: '胜负',
     options: [
       { label: '主胜', price: 0.45 },
       { label: '平局', price: 0.25 },
@@ -47,39 +71,83 @@ const MARKET_DEFS: Record<string, { description: string; options: OptionDef[] }>
       { label: '小于等于 2.5 球', price: 0.45 },
     ],
   },
-  cs: {
-    description: '精确比分',
+};
+
+// Tennis/Basketball don't have ou25 - only 1x2 (or win/lose)
+const MARKET_DEFS_TENNIS: Record<string, { description: string; options: OptionDef[] }> = {
+  '1x2': {
+    description: '胜负',
     options: [
-      { label: '1:0', price: 0.14 },
-      { label: '0:0', price: 0.12 },
-      { label: '1:1', price: 0.12 },
-      { label: '2:0', price: 0.10 },
-      { label: '2:1', price: 0.10 },
-      { label: '0:1', price: 0.08 },
-      { label: '0:2', price: 0.06 },
-      { label: '1:2', price: 0.06 },
-      { label: '2:2', price: 0.05 },
-      { label: '其他', price: 0.17 },
+      { label: '主胜', price: 0.50 },
+      { label: '客胜', price: 0.50 },
     ],
   },
 };
 
-// 部分比赛有自定义赔率（强队 vs 弱队）
-const CUSTOM_PRICES: Record<string, Record<string, OptionDef[]>> = {
-  // Spain vs Georgia — Spain 大热
-  'Spain vs Georgia': {
-    '1x2': [
-      { label: '主胜', price: 0.85 },
-      { label: '平局', price: 0.08 },
-      { label: '客胜', price: 0.07 },
+const MARKET_DEFS_BASKETBALL: Record<string, { description: string; options: OptionDef[] }> = {
+  '1x2': {
+    description: '胜负',
+    options: [
+      { label: '主胜', price: 0.55 },
+      { label: '客胜', price: 0.45 },
     ],
   },
-  // Spain vs England (Final) — 均势
-  'Spain vs England': {
+};
+
+// Custom prices for specific matches
+const CUSTOM_PRICES: Record<string, Record<string, OptionDef[]>> = {
+  '皇家马德里 vs 曼城': {
     '1x2': [
-      { label: '主胜', price: 0.40 },
-      { label: '平局', price: 0.28 },
-      { label: '客胜', price: 0.32 },
+      { label: '主胜', price: 0.42 },
+      { label: '平局', price: 0.24 },
+      { label: '客胜', price: 0.34 },
+    ],
+  },
+  '阿尔卡拉斯 vs 辛纳': {
+    '1x2': [
+      { label: '主胜', price: 0.55 },
+      { label: '客胜', price: 0.45 },
+    ],
+  },
+  '斯瓦泰克 vs 高芙': {
+    '1x2': [
+      { label: '主胜', price: 0.60 },
+      { label: '客胜', price: 0.40 },
+    ],
+  },
+  '阿根廷 vs 待定': {
+    '1x2': [
+      { label: '主胜', price: 0.65 },
+      { label: '平局', price: 0.20 },
+      { label: '客胜', price: 0.15 },
+    ],
+  },
+  '巴西 vs 待定': {
+    '1x2': [
+      { label: '主胜', price: 0.60 },
+      { label: '平局', price: 0.22 },
+      { label: '客胜', price: 0.18 },
+    ],
+  },
+  '法国 vs 待定': {
+    '1x2': [
+      { label: '主胜', price: 0.58 },
+      { label: '平局', price: 0.22 },
+      { label: '客胜', price: 0.20 },
+    ],
+  },
+  '英格兰 vs 待定': {
+    '1x2': [
+      { label: '主胜', price: 0.52 },
+      { label: '平局', price: 0.25 },
+      { label: '客胜', price: 0.23 },
+    ],
+  },
+  '德国 vs 待定': {
+    '1x2': [
+      { label: '主胜', price: 0.50 },
+      { label: '平局', price: 0.25 },
+      { label: '客胜', price: 0.25 },
     ],
   },
 };
@@ -93,11 +161,23 @@ export function seedData(): void {
     return;
   }
 
-  console.log('Seeding database...');
+  console.log('Seeding database with 2026 real events...');
+
+  // Insert tournaments
+  const tournamentMap: Record<string, number> = {};
+  const insertTournament = db.prepare(`
+    INSERT INTO tournaments (name, slug, icon, sport, start_date, end_date, status, sort_order)
+    VALUES (@name, @slug, @icon, @sport, @start_date, @end_date, @status, @sort_order)
+  `);
+
+  for (const t of TOURNAMENTS) {
+    const result = insertTournament.run(t);
+    tournamentMap[t.slug] = result.lastInsertRowid as number;
+  }
 
   const insertMatch = db.prepare(`
-    INSERT INTO matches (home_team, away_team, round_name, kickoff_time, status, result_home, result_away)
-    VALUES (@home_team, @away_team, @round_name, @kickoff_time, @status, @result_home, @result_away)
+    INSERT INTO matches (tournament_id, home_team, away_team, round_name, kickoff_time, status, result_home, result_away)
+    VALUES (@tournament_id, @home_team, @away_team, @round_name, @kickoff_time, @status, @result_home, @result_away)
   `);
 
   const insertMarket = db.prepare(`
@@ -112,12 +192,33 @@ export function seedData(): void {
 
   const seedTransaction = db.transaction(() => {
     for (const match of MATCHES) {
-      const result = insertMatch.run(match);
+      const tournamentId = tournamentMap[match.tournament_slug];
+      const result = insertMatch.run({
+        tournament_id: tournamentId,
+        home_team: match.home_team,
+        away_team: match.away_team,
+        round_name: match.round_name,
+        kickoff_time: match.kickoff_time,
+        status: match.status,
+        result_home: match.result_home,
+        result_away: match.result_away,
+      });
       const matchId = result.lastInsertRowid as number;
       const matchKey = `${match.home_team} vs ${match.away_team}`;
+
+      // Pick market defs based on sport
+      let marketDefs: Record<string, { description: string; options: OptionDef[] }>;
+      if (match.tournament_slug === 'roland-garros-2026') {
+        marketDefs = MARKET_DEFS_TENNIS;
+      } else if (match.tournament_slug === 'nba-finals-2026') {
+        marketDefs = MARKET_DEFS_BASKETBALL;
+      } else {
+        marketDefs = MARKET_DEFS;
+      }
+
       const customPrices = CUSTOM_PRICES[matchKey] || {};
 
-      for (const [marketType, marketDef] of Object.entries(MARKET_DEFS)) {
+      for (const [marketType, marketDef] of Object.entries(marketDefs)) {
         const marketResult = insertMarket.run({
           match_id: matchId,
           market_type: marketType,
@@ -125,10 +226,9 @@ export function seedData(): void {
         });
         const marketId = marketResult.lastInsertRowid as number;
 
-        // Use custom prices if available, otherwise defaults
         const options = customPrices[marketType] || marketDef.options;
 
-        options.forEach((opt, index) => {
+        options.forEach((opt: OptionDef, index: number) => {
           insertOption.run({
             market_id: marketId,
             label: opt.label,
@@ -146,14 +246,8 @@ export function seedData(): void {
       'INSERT INTO users (username, password_hash, balance, is_admin) VALUES (?, ?, ?, ?)'
     ).run('admin', adminHash, 100.0, 1);
 
-    console.log('Seed data inserted successfully.');
+    console.log('Seed data inserted successfully - 2026 real events!');
   });
 
   seedTransaction();
-}
-
-// Allow running directly
-if (require.main === module) {
-  initDB();
-  seedData();
 }

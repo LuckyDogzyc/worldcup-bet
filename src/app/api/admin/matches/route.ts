@@ -6,13 +6,11 @@ import { ensureInitialized } from '@/lib/init-app';
 const MARKET_OPTIONS: Record<string, string[]> = {
   '1x2': ['主胜', '平局', '客胜'],
   ou25: ['大于 2.5 球', '小于等于 2.5 球'],
-  cs: ['0:0', '1:0', '0:1', '1:1', '2:0', '0:2', '2:1', '1:2', '2:2', '其他'],
 };
 
 const MARKET_DESCRIPTIONS: Record<string, string> = {
   '1x2': '胜负平',
   ou25: '大小球 2.5',
-  cs: '精确比分',
 };
 
 export async function POST(request: Request) {
@@ -23,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '无权限' }, { status: 403 });
     }
 
-    const { homeTeam, awayTeam, roundName, kickoffTime } = await request.json();
+    const { homeTeam, awayTeam, roundName, kickoffTime, tournamentId } = await request.json();
 
     if (!homeTeam || !awayTeam || !kickoffTime) {
       return NextResponse.json(
@@ -37,10 +35,10 @@ export async function POST(request: Request) {
     const createMatchWithMarkets = db.transaction(() => {
       const matchResult = db
         .prepare(
-          `INSERT INTO matches (home_team, away_team, round_name, kickoff_time, status)
-           VALUES (?, ?, ?, ?, 'upcoming')`
+          `INSERT INTO matches (tournament_id, home_team, away_team, round_name, kickoff_time, status)
+           VALUES (?, ?, ?, ?, ?, 'upcoming')`
         )
-        .run(homeTeam, awayTeam, roundName || null, kickoffTime);
+        .run(tournamentId || null, homeTeam, awayTeam, roundName || null, kickoffTime);
 
       const matchId = matchResult.lastInsertRowid as number;
 

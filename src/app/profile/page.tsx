@@ -182,8 +182,10 @@ export default function ProfileClient() {
                   <span className="text-white">{bet.shares.toFixed(2)} 股</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/40">买入价</span>
-                  <span className="text-white/70">${bet.price_at_bet.toFixed(2)}/股</span>
+                  <span className="text-white/40">赔率</span>
+                  <span className="text-gold font-medium">
+                    {bet.price_at_bet > 0 ? (1 / bet.price_at_bet).toFixed(2) : '0'} 倍
+                  </span>
                 </div>
                 <div className="flex justify-between border-t border-white/10 pt-1.5">
                   <span className="text-white/40">

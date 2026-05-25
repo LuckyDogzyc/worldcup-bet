@@ -24,6 +24,19 @@ export function initDB(): Database.Database {
   db.pragma('foreign_keys = ON');
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS tournaments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      icon TEXT DEFAULT '🏆',
+      sport TEXT DEFAULT 'football',
+      start_date TEXT,
+      end_date TEXT,
+      status TEXT DEFAULT 'upcoming',
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -35,6 +48,7 @@ export function initDB(): Database.Database {
 
     CREATE TABLE IF NOT EXISTS matches (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tournament_id INTEGER,
       home_team TEXT NOT NULL,
       away_team TEXT NOT NULL,
       round_name TEXT,
@@ -42,7 +56,8 @@ export function initDB(): Database.Database {
       status TEXT DEFAULT 'upcoming',
       result_home INTEGER,
       result_away INTEGER,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (tournament_id) REFERENCES tournaments(id)
     );
 
     CREATE TABLE IF NOT EXISTS markets (
@@ -86,6 +101,13 @@ export function initDB(): Database.Database {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
   `);
+
+  // Safe migration: add tournament_id column if missing
+  try {
+    db.exec('ALTER TABLE matches ADD COLUMN tournament_id INTEGER REFERENCES tournaments(id)');
+  } catch (e: any) {
+    if (!e.message?.includes('duplicate column')) throw e;
+  }
 
   return db;
 }

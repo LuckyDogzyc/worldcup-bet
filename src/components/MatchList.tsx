@@ -101,7 +101,8 @@ export default function MatchList({ balance, onBalanceChange }: { balance: numbe
   const finished = matches.filter((m) => m.status === 'finished');
 
   const formatTime = (iso: string) => {
-    const d = new Date(iso + 'Z');
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
     return d.toLocaleString('zh-CN', {
       month: 'numeric',
       day: 'numeric',

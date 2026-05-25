@@ -3,8 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface Tournament {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string;
+}
+
 interface Match {
   id: number;
+  tournament_id: number;
   home_team: string;
   away_team: string;
   round_name: string;
@@ -16,6 +24,7 @@ interface Match {
 
 export default function AdminPage() {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
@@ -33,6 +42,7 @@ export default function AdminPage() {
   const [awayTeam, setAwayTeam] = useState('');
   const [roundName, setRoundName] = useState('');
   const [kickoffTime, setKickoffTime] = useState('');
+  const [selectedTournament, setSelectedTournament] = useState('');
   const [createMsg, setCreateMsg] = useState('');
   const [createError, setCreateError] = useState('');
   const [creating, setCreating] = useState(false);
@@ -48,8 +58,16 @@ export default function AdminPage() {
       }
       setIsAdmin(true);
       setMatches(matchData.matches || []);
+      setTournaments(matchData.tournaments || []);
     }).finally(() => setLoading(false));
   }, [router]);
+
+  const refreshMatches = async () => {
+    const matchRes = await fetch('/api/matches');
+    const matchData = await matchRes.json();
+    setMatches(matchData.matches || []);
+    setTournaments(matchData.tournaments || []);
+  };
 
   const handleSettle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,12 +90,9 @@ export default function AdminPage() {
         setSettleError(data.error || '结算失败');
         return;
       }
-      setSettleMsg(`✅ 结算成功！${data.settlements?.length || 0} 个市场已结算`);
-
-      // Refresh matches
-      const matchRes = await fetch('/api/matches');
-      const matchData = await matchRes.json();
-      setMatches(matchData.matches || []);
+      const count = data.settlements?.length || 0;
+      setSettleMsg(`✅ 结算成功！${count} 个市场已结算`);
+      await refreshMatches();
       setResultHome('');
       setResultAway('');
     } catch {
@@ -97,21 +112,22 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ homeTeam, awayTeam, roundName, kickoffTime }),
+        body: JSON.stringify({
+          homeTeam,
+          awayTeam,
+          roundName,
+          kickoffTime,
+          tournamentId: selectedTournament ? Number(selectedTournament) : null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setCreateError(data.error || '创建失败');
         return;
       }
-      setCreateMsg(`✅ 比赛已创建！ID: ${data.match?.id}`);
-
-      // Refresh matches
-      const matchRes = await fetch('/api/matches');
-      const matchData = await matchRes.json();
-      setMatches(matchData.matches || []);
-
-      // Reset form
+      const matchId = data.match?.id;
+      setCreateMsg(`✅ 比赛已创建！ID: ${matchId}`);
+      await refreshMatches();
       setHomeTeam('');
       setAwayTeam('');
       setRoundName('');
@@ -136,6 +152,23 @@ export default function AdminPage() {
 
   const upcomingMatches = matches.filter((m) => m.status === 'upcoming' || m.status === 'live');
   const finishedMatches = matches.filter((m) => m.status === 'finished');
+
+  const getTournamentName = (tid: number) => {
+    const t = tournaments.find(t => t.id === tid);
+    return t ? `${t.icon} ${t.name}` : '-';
+  };
+
+  const getStatusStyle = (status: string) => {
+    if (status === 'upcoming') return 'bg-blue-500/20 text-blue-400';
+    if (status === 'live') return 'bg-red-500/20 text-red-400';
+    return 'bg-white/10 text-white/50';
+  };
+
+  const getStatusLabel = (status: string) => {
+    if (status === 'upcoming') return '未开始';
+    if (status === 'live') return '进行中';
+    return '已结束';
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -173,7 +206,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white/50 text-xs mb-1">主队进球</label>
+                  <label className="block text-white/50 text-xs mb-1">主队得分</label>
                   <input
                     type="number"
                     min="0"
@@ -185,7 +218,7 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-white/50 text-xs mb-1">客队进球</label>
+                  <label className="block text-white/50 text-xs mb-1">客队得分</label>
                   <input
                     type="number"
                     min="0"
@@ -219,6 +252,21 @@ export default function AdminPage() {
           </h2>
 
           <form onSubmit={handleCreate} className="space-y-3">
+            <div>
+              <label className="block text-white/50 text-xs mb-1">所属赛事</label>
+              <select
+                value={selectedTournament}
+                onChange={(e) => setSelectedTournament(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-gold/50"
+              >
+                <option value="" className="bg-pitch-dark">无（独立比赛）</option>
+                {tournaments.map((t) => (
+                  <option key={t.id} value={t.id} className="bg-pitch-dark">
+                    {t.icon} {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-white/50 text-xs mb-1">主队</label>
               <input
@@ -278,12 +326,13 @@ export default function AdminPage() {
 
       {/* Match list overview */}
       <div className="mt-8">
-        <h2 className="text-lg font-bold text-white mb-4">📊 比赛总览</h2>
+        <h2 className="text-lg font-bold text-white mb-4">📊 比赛总览 ({matches.length})</h2>
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10">
+                  <th className="text-left text-white/40 font-medium px-4 py-2">赛事</th>
                   <th className="text-left text-white/40 font-medium px-4 py-2">比赛</th>
                   <th className="text-left text-white/40 font-medium px-4 py-2">轮次</th>
                   <th className="text-center text-white/40 font-medium px-4 py-2">状态</th>
@@ -293,18 +342,14 @@ export default function AdminPage() {
               <tbody>
                 {matches.map((m) => (
                   <tr key={m.id} className="border-b border-white/5">
+                    <td className="px-4 py-2 text-white/50 text-xs">{getTournamentName(m.tournament_id)}</td>
                     <td className="px-4 py-2 text-white font-medium">
                       {m.home_team} vs {m.away_team}
                     </td>
                     <td className="px-4 py-2 text-white/50">{m.round_name || '-'}</td>
                     <td className="px-4 py-2 text-center">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        m.status === 'upcoming' ? 'bg-blue-500/20 text-blue-400' :
-                        m.status === 'live' ? 'bg-red-500/20 text-red-400' :
-                        'bg-white/10 text-white/50'
-                      }`}>
-                        {m.status === 'upcoming' ? '未开始' :
-                         m.status === 'live' ? '进行中' : '已结束'}
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyle(m.status)}`}>
+                        {getStatusLabel(m.status)}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-center text-white/70">
