@@ -12,6 +12,8 @@ const PUBLIC_PATHS = [
   '/api/auth/register',
 ];
 
+const CRON_SECRET = process.env.CRON_SECRET || 'cron-secret-2026';
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -24,9 +26,39 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Cron endpoints: allow via Bearer token or internal (localhost)
+  if (pathname.startsWith('/api/cron/')) {
+    const authHeader = request.headers.get('authorization');
+    const cronToken = request.nextUrl.searchParams.get('token');
+    if (
+      authHeader === `Bearer ${CRON_SECRET}` ||
+      cronToken === CRON_SECRET
+    ) {
+      return NextResponse.next();
+    }
+    // Also allow localhost without auth (system cron)
+    const xForwarded = request.headers.get('x-forwarded-for');
+    const realIp = request.headers.get('x-real-ip');
+    const remoteAddr = request.headers.get('x-remote-addr');
+    if (!xForwarded && !realIp && !remoteAddr) {
+      // Direct localhost request (no reverse proxy headers)
+      return NextResponse.next();
+    }
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Leaderboard is public (read-only)
+  if (pathname === '/api/leaderboard' || pathname === '/leaderboard') {
+    return NextResponse.next();
+  }
+
   const token = request.cookies.get('token')?.value;
 
   if (!token) {
+    // API routes return JSON error, pages redirect
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: '请先登录' }, { status: 401 });
+    }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -34,7 +66,9 @@ export async function middleware(request: NextRequest) {
     await jwtVerify(token, SECRET);
     return NextResponse.next();
   } catch {
-    // Invalid token, redirect to login
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: '登录已过期' }, { status: 401 });
+    }
     const response = NextResponse.redirect(new URL('/login', request.url));
     response.cookies.delete('token');
     return response;
@@ -43,12 +77,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

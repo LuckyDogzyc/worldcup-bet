@@ -47,8 +47,8 @@ export default function LoginPage() {
         <div className="h-1 bg-gradient-to-r from-gold-dark via-gold to-gold-light rounded-t-xl -mt-8 -mx-8 mb-6" />
 
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">⚽ 世界杯竞猜</h1>
-          <p className="text-gold/60 text-sm">2026 FIFA World Cup</p>
+          <h1 className="text-4xl font-bold text-white mb-2">🏟️ 体育竞猜</h1>
+          <p className="text-gold/60 text-sm">世界杯 · 欧冠 · NBA · 网球 · 更多</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,9 +105,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <div className="mt-6 text-center text-white/20 text-xs">
-          管理员: admin / admin123
-        </div>
+
       </div>
     </div>
   );

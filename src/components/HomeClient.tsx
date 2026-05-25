@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import BetModal from './BetModal';
+import { priceToOdds, oddsColor, formatTime, getMarketLabel } from '@/lib/utils';
 
 interface Tournament {
   id: number;
@@ -50,33 +51,21 @@ interface BetModalState {
   option: Option;
 }
 
-// price (0-1) → 倍率字符串
-function priceToOdds(price: number): string {
-  if (price <= 0) return '0';
-  return (1 / price).toFixed(2);
-}
-
-// price → 盈亏比颜色
-function oddsColor(price: number): string {
-  const odds = 1 / price;
-  if (odds >= 3) return 'text-green-400';
-  if (odds >= 2) return 'text-yellow-300';
-  return 'text-white/80';
-}
-
 export default function HomeClient({ username, balance: initialBalance }: { username: string; balance: number }) {
   const [balance, setBalance] = useState(initialBalance);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [betMarketIds, setBetMarketIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<BetModalState | null>(null);
   const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
-  const [activeTournament, setActiveTournament] = useState<number | null>(null); // null = all
+  const [activeTournament, setActiveTournament] = useState<number | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchData = useCallback(async () => {
     try {
+      setError(null);
       const [matchRes, betRes] = await Promise.all([
         fetch('/api/matches'),
         fetch('/api/bets'),
@@ -93,7 +82,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
       }
       setLastRefresh(new Date());
     } catch {
-      // ignore
+      setError('网络错误，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -127,24 +116,6 @@ export default function HomeClient({ username, balance: initialBalance }: { user
   const live = filtered.filter(m => m.status === 'live');
   const finished = filtered.filter(m => m.status === 'finished');
 
-  const formatTime = (iso: string) => {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleString('zh-CN', {
-      month: 'numeric', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
-  };
-
-  const getMarketLabel = (type: string) => {
-    switch (type) {
-      case '1x2': return '胜负';
-      case 'ou25': return '大小球';
-      case 'cs': return '正确比分';
-      default: return type;
-    }
-  };
-
   const getMarketEmoji = (type: string) => {
     switch (type) {
       case '1x2': return '⚽';
@@ -161,6 +132,16 @@ export default function HomeClient({ username, balance: initialBalance }: { user
           <div className="text-4xl mb-3 animate-bounce">⚽</div>
           <p className="text-white/50">加载比赛中...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="text-5xl mb-4">😔</div>
+        <p className="text-red-400 mb-4">{error}</p>
+        <button onClick={fetchData} className="btn-primary">重新加载</button>
       </div>
     );
   }
@@ -194,6 +175,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
       <div key={match.id} className="glass-card overflow-hidden transition-all duration-200">
         <button
           onClick={() => setExpandedMatch(isExpanded ? null : match.id)}
+          aria-label={`${match.home_team} vs ${match.away_team}`}
           className="w-full px-4 py-3 sm:px-5 sm:py-4 text-left hover:bg-white/5 transition-colors"
         >
           <div className="flex items-center justify-between">
@@ -210,7 +192,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
                   </div>
                 ) : (
                   <div className={`text-xs font-bold px-3 py-1 rounded-full ${statusClass}`}>
-                    {match.status === 'live' ? '● LIVE' : 'VS'}
+                    {match.status === 'live' ? '● 进行中' : 'VS'}
                   </div>
                 )}
               </div>
@@ -338,7 +320,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
 
       {/* Tournament tabs */}
       {tournaments.length > 0 && (
-        <div className="mb-5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="mb-5 flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
           <button
             onClick={() => setActiveTournament(null)}
             className={`${tabBase} ${activeTournament === null ? tabActive : tabInactive}`}
@@ -369,7 +351,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
         <div className="text-center py-20">
           <div className="text-5xl mb-4">🏟️</div>
           <p className="text-white/40">暂无比赛数据</p>
-          <p className="text-white/20 text-sm mt-1">等待管理员添加比赛</p>
+          <p className="text-white/20 text-sm mt-1">赔率同步启动后将自动拉取赛事</p>
         </div>
       )}
 

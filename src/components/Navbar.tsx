@@ -33,6 +33,11 @@ export default function Navbar() {
     fetchUser();
   }, [fetchUser, pathname]);
 
+  // Close mobile menu on navigation
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
@@ -55,8 +60,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="text-2xl">⚽</span>
-            <span className="text-lg font-bold text-gold hidden sm:block">世界杯竞猜</span>
+            <span className="text-2xl">🏟️</span>
+            <span className="text-lg font-bold text-gold hidden sm:block">体育竞猜</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -96,6 +101,7 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? '关闭菜单' : '打开菜单'}
             className="md:hidden p-2 rounded-lg hover:bg-white/10 text-white"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

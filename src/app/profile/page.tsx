@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { priceToOdds, formatTime as fmtTime, getMarketLabel } from '@/lib/utils';
 
 interface Bet {
   id: number;
@@ -24,6 +25,7 @@ export default function ProfileClient() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'unsettled' | 'settled'>('unsettled');
 
   useEffect(() => {
@@ -35,6 +37,8 @@ export default function ProfileClient() {
       if (userData?.user) {
         setUser({ username: userData.user.username, balance: userData.user.balance });
       }
+    }).catch(() => {
+      setError('加载失败，请刷新重试');
     }).finally(() => setLoading(false));
   }, []);
 
@@ -47,26 +51,28 @@ export default function ProfileClient() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-20">
+        <div className="text-5xl mb-4">😔</div>
+        <p className="text-red-400 mb-4">{error}</p>
+      </div>
+    );
+  }
+
   const unsettled = bets.filter((b) => b.status === 'pending');
   const settled = bets.filter((b) => b.status !== 'pending');
 
+  // Fix: Net P&L = total won payouts - total lost stakes (not all invested)
   const totalInvested = bets.reduce((s, b) => s + b.amount, 0);
   const totalWon = settled.filter((b) => b.status === 'won').reduce((s, b) => s + b.estimated_payout, 0);
   const totalLost = settled.filter((b) => b.status === 'lost').reduce((s, b) => s + b.amount, 0);
-  const netPL = totalWon - totalInvested;
+  const netPL = totalWon - totalLost;
 
   const formatDate = (iso: string) => {
     const d = new Date(iso + (iso.includes('Z') ? '' : 'Z'));
+    if (isNaN(d.getTime())) return '未知时间';
     return d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getMarketLabel = (type: string) => {
-    switch (type) {
-      case '1x2': return '胜负';
-      case 'ou25': return '大小球';
-      case 'cs': return '比分';
-      default: return type;
-    }
   };
 
   const activeBets = tab === 'unsettled' ? unsettled : settled;
@@ -102,7 +108,7 @@ export default function ProfileClient() {
         <div className="glass-card p-3 text-center">
           <p className="text-[10px] text-white/40 mb-1">净盈亏</p>
           <p className={`font-bold text-sm ${netPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {netPL >= 0 ? '+' : ''}{netPL.toFixed(2)}
+            {netPL >= 0 ? '+' : ''}${Math.abs(netPL).toFixed(2)}
           </p>
         </div>
       </div>
@@ -178,13 +184,9 @@ export default function ProfileClient() {
                   <span className="text-white">${bet.amount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/40">持有</span>
-                  <span className="text-white">{bet.shares.toFixed(2)} 股</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-white/40">赔率</span>
                   <span className="text-gold font-medium">
-                    {bet.price_at_bet > 0 ? (1 / bet.price_at_bet).toFixed(2) : '0'} 倍
+                    {priceToOdds(bet.price_at_bet)} 倍
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-white/10 pt-1.5">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getStatusLabel as statusLabel } from '@/lib/utils';
 
 interface Tournament {
   id: number;
@@ -151,7 +152,6 @@ export default function AdminPage() {
   if (!isAdmin) return null;
 
   const upcomingMatches = matches.filter((m) => m.status === 'upcoming' || m.status === 'live');
-  const finishedMatches = matches.filter((m) => m.status === 'finished');
 
   const getTournamentName = (tid: number) => {
     const t = tournaments.find(t => t.id === tid);
@@ -162,12 +162,6 @@ export default function AdminPage() {
     if (status === 'upcoming') return 'bg-blue-500/20 text-blue-400';
     if (status === 'live') return 'bg-red-500/20 text-red-400';
     return 'bg-white/10 text-white/50';
-  };
-
-  const getStatusLabel = (status: string) => {
-    if (status === 'upcoming') return '未开始';
-    if (status === 'live') return '进行中';
-    return '已结束';
   };
 
   return (
@@ -198,7 +192,7 @@ export default function AdminPage() {
                   <option value="" className="bg-pitch-dark">请选择...</option>
                   {upcomingMatches.map((m) => (
                     <option key={m.id} value={m.id} className="bg-pitch-dark">
-                      {m.home_team} vs {m.away_team} ({m.status})
+                      {m.home_team} vs {m.away_team} ({statusLabel(m.status)})
                     </option>
                   ))}
                 </select>
@@ -307,6 +301,7 @@ export default function AdminPage() {
                 onChange={(e) => setKickoffTime(e.target.value)}
                 required
                 className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-gold/50"
+                style={{ colorScheme: 'dark' }}
               />
             </div>
 
@@ -349,7 +344,7 @@ export default function AdminPage() {
                     <td className="px-4 py-2 text-white/50">{m.round_name || '-'}</td>
                     <td className="px-4 py-2 text-center">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyle(m.status)}`}>
-                        {getStatusLabel(m.status)}
+                        {statusLabel(m.status)}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-center text-white/70">

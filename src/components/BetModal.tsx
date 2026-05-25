@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { priceToOdds as calcOdds, getMarketLabel } from '@/lib/utils';
 
 interface BetModalProps {
   matchInfo: { home_team: string; away_team: string };
@@ -11,29 +12,27 @@ interface BetModalProps {
   onSuccess: (newBalance: number) => void;
 }
 
-function priceToOdds(price: number): string {
-  if (price <= 0) return '0';
-  return (1 / price).toFixed(2);
-}
-
 export default function BetModal({ matchInfo, marketInfo, option, balance, onClose, onSuccess }: BetModalProps) {
   const [amount, setAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
-  const odds = 1 / option.price; // e.g. price=0.45 → odds=2.22
-  const estimatedReturn = amount * odds; // 投$10 × 2.22 = $22.22
-  const estimatedProfit = estimatedReturn - amount; // 净利润
-  const isValid = amount > 0 && amount <= balance;
+  // Guard against price <= 0 to prevent Infinity
+  const safeOdds = option.price > 0 ? (1 / option.price) : 0;
+  const estimatedReturn = amount * safeOdds;
+  const estimatedProfit = estimatedReturn - amount;
+  const isValid = amount > 0 && amount <= balance && safeOdds > 0;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
+  }, []);
 
   const quickAmounts = [5, 10, 25, 50];
 
@@ -58,7 +57,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
       setSuccess(true);
       setTimeout(() => {
         onSuccess(data.balance);
-        onClose();
+        onCloseRef.current();
       }, 1500);
     } catch {
       setError('网络错误，请稍后再试');
@@ -67,14 +66,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
     }
   };
 
-  const getMarketLabel = (type: string) => {
-    switch (type) {
-      case '1x2': return '胜负';
-      case 'ou25': return '大小球';
-      case 'cs': return '正确比分';
-      default: return type;
-    }
-  };
+  const oddsDisplay = calcOdds(option.price);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
@@ -92,7 +84,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                 {matchInfo.home_team} vs {matchInfo.away_team}
               </p>
             </div>
-            <button onClick={onClose} className="text-white/40 hover:text-white transition-colors p-1">
+            <button onClick={onClose} aria-label="关闭" className="text-white/40 hover:text-white transition-colors p-1">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -119,10 +111,10 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/50">赔率</span>
-                  <span className="text-gold font-bold text-base">{priceToOdds(option.price)} 倍</span>
+                  <span className="text-gold font-bold text-base">{oddsDisplay} 倍</span>
                 </div>
                 <div className="text-xs text-white/40 pt-1 border-t border-white/10">
-                  💡 投 $1 → 赢了得 ${priceToOdds(option.price)}
+                  💡 投 $1 → 赢了得 ${oddsDisplay}
                 </div>
               </div>
 
@@ -171,7 +163,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/50">赔率</span>
-                    <span className="text-gold font-bold">{priceToOdds(option.price)} 倍</span>
+                    <span className="text-gold font-bold">{oddsDisplay} 倍</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/50">赢了收回</span>

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "世界杯竞猜 - 2026 FIFA World Cup",
-  description: "2026 FIFA 世界杯竞猜游戏",
+  title: "体育竞猜 - 世界杯 · 欧冠 · NBA · 网球",
+  description: "体育赛事虚拟竞猜平台，覆盖世界杯、欧冠、NBA、网球等赛事",
 };
 
 export default function RootLayout({
