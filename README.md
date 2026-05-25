@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚽ 2026 FIFA World Cup 竞猜游戏
 
-## Getting Started
+一个 Polymarket 风格的虚拟世界杯竞猜游戏。和同事们一起玩，注册送 $100 虚拟货币！
 
-First, run the development server:
+## ✨ 功能
+
+- 🎮 注册送 $100 虚拟货币
+- 📊 三种盘口：**1X2 胜负** / **大小球 2.5** / **正确比分**
+- 🔄 实时赔率同步（每分钟从 The Odds API 更新）
+- 💰 Polymarket 风格：买股下注，正确结算 $1/股
+- 🏆 排行榜 + 个人中心
+- 📱 手机友好，足球主题 UI
+
+## 🚀 快速开始
+
+### 方式 1: 直接运行
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 安装依赖
+npm install
+
+# 构建
+npm run build
+
+# 启动（端口 3000）
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 方式 2: Docker
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 构建并启动
+docker compose up -d
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# 访问 http://localhost:3100
+```
 
-## Learn More
+## 🔑 配置实时赔率（可选）
 
-To learn more about Next.js, take a look at the following resources:
+1. 去 [the-odds-api.com](https://the-odds-api.com) 注册（免费）
+2. 获取 API Key
+3. 设置环境变量：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# 直接运行
+export ODDS_API_KEY=your_key_here
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Docker: 创建 .env 文件
+echo "ODDS_API_KEY=your_key_here" > .env
+```
 
-## Deploy on Vercel
+不设置 API Key 也完全可以使用 — 会使用默认赔率。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 👤 默认账号
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **管理员**: admin / admin123
+- 注册新用户即送 $100 虚拟货币
+
+## 🎯 下注规则
+
+| 概念 | 说明 |
+|------|------|
+| 价格 | 每个选项的价格代表概率（$0.02 ~ $0.98） |
+| 股数 | 投入金额 ÷ 当前价格 |
+| 结算 | 正确选项每股 = $1，错误 = $0 |
+| 示例 | 花 $10 买 $0.40 的选项 → 得 25 股 → 正确赚 $25 |
+
+## 🏗️ 技术栈
+
+- Next.js 16 (App Router) + TypeScript
+- Tailwind CSS v4（足球主题）
+- SQLite (better-sqlite3)
+- JWT 认证
+- The Odds API（实时赔率）
+- Docker 部署
+
+## ⚠️ 免责声明
+
+这是一个**虚拟游戏**，不涉及任何真实交易。

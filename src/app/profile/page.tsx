@@ -1,0 +1,220 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
+interface Bet {
+  id: number;
+  amount: number;
+  shares: number;
+  price_at_bet: number;
+  created_at: string;
+  option: { id: number; label: string };
+  market: { id: number; type: string; description: string; settled: boolean; winning_option: string | null };
+  match: { id: number; home_team: string; away_team: string; round_name: string; status: string };
+  status: 'pending' | 'won' | 'lost';
+  estimated_payout: number;
+}
+
+interface UserInfo {
+  username: string;
+  balance: number;
+}
+
+export default function ProfileClient() {
+  const [bets, setBets] = useState<Bet[]>([]);
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'unsettled' | 'settled'>('unsettled');
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/bets').then((r) => r.json()),
+      fetch('/api/auth/me').then((r) => r.ok ? r.json() : null),
+    ]).then(([betData, userData]) => {
+      setBets(betData.bets || []);
+      if (userData?.user) {
+        setUser({ username: userData.user.username, balance: userData.user.balance });
+      }
+    }).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center py-20">
+        <div className="text-4xl mb-3 animate-bounce">📋</div>
+        <p className="text-white/50">加载投注记录...</p>
+      </div>
+    );
+  }
+
+  const unsettled = bets.filter((b) => b.status === 'pending');
+  const settled = bets.filter((b) => b.status !== 'pending');
+
+  const totalInvested = bets.reduce((s, b) => s + b.amount, 0);
+  const totalWon = settled.filter((b) => b.status === 'won').reduce((s, b) => s + b.estimated_payout, 0);
+  const totalLost = settled.filter((b) => b.status === 'lost').reduce((s, b) => s + b.amount, 0);
+  const netPL = totalWon - totalInvested;
+
+  const formatDate = (iso: string) => {
+    const d = new Date(iso + (iso.includes('Z') ? '' : 'Z'));
+    return d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getMarketLabel = (type: string) => {
+    switch (type) {
+      case '1x2': return '胜负';
+      case 'ou25': return '大小球';
+      case 'cs': return '比分';
+      default: return type;
+    }
+  };
+
+  const activeBets = tab === 'unsettled' ? unsettled : settled;
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      {/* User info */}
+      {user && (
+        <div className="glass-card p-5 mb-6 flex items-center justify-between">
+          <div>
+            <p className="text-white/40 text-xs">用户名</p>
+            <p className="text-white font-bold text-lg">{user.username}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-white/40 text-xs">当前余额</p>
+            <p className="text-gold font-black text-2xl">${user.balance.toFixed(2)}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="glass-card p-3 text-center">
+          <p className="text-[10px] text-white/40 mb-1">总投入</p>
+          <p className="text-white font-bold text-sm">${totalInvested.toFixed(2)}</p>
+        </div>
+        <div className="glass-card p-3 text-center">
+          <p className="text-[10px] text-white/40 mb-1">总收益</p>
+          <p className={`font-bold text-sm ${totalWon > 0 ? 'text-green-400' : 'text-white/50'}`}>
+            ${totalWon.toFixed(2)}
+          </p>
+        </div>
+        <div className="glass-card p-3 text-center">
+          <p className="text-[10px] text-white/40 mb-1">净盈亏</p>
+          <p className={`font-bold text-sm ${netPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {netPL >= 0 ? '+' : ''}{netPL.toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-4 bg-white/5 rounded-lg p-1">
+        <button
+          onClick={() => setTab('unsettled')}
+          className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+            tab === 'unsettled' ? 'bg-gold/20 text-gold' : 'text-white/50 hover:text-white/70'
+          }`}
+        >
+          未结算 ({unsettled.length})
+        </button>
+        <button
+          onClick={() => setTab('settled')}
+          className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+            tab === 'settled' ? 'bg-gold/20 text-gold' : 'text-white/50 hover:text-white/70'
+          }`}
+        >
+          已结算 ({settled.length})
+        </button>
+      </div>
+
+      {/* Bets list */}
+      <div className="space-y-3">
+        {activeBets.map((bet) => {
+          const isWon = bet.status === 'won';
+          const isLost = bet.status === 'lost';
+
+          return (
+            <div
+              key={bet.id}
+              className={`glass-card p-4 border-l-4 ${
+                isWon ? 'border-l-green-500' : isLost ? 'border-l-red-500' : 'border-l-gold'
+              }`}
+            >
+              {/* Match info */}
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-white font-bold text-sm">
+                    {bet.match.home_team} vs {bet.match.away_team}
+                  </p>
+                  {bet.match.round_name && (
+                    <p className="text-white/30 text-[10px]">{bet.match.round_name}</p>
+                  )}
+                </div>
+                <div className="text-right">
+                  {bet.status === 'pending' && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-gold/15 text-gold">待结算</span>
+                  )}
+                  {isWon && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">✓ 中奖</span>
+                  )}
+                  {isLost && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">✗ 未中</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Bet details */}
+              <div className="bg-white/[0.03] rounded-lg p-3 text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-white/40">市场</span>
+                  <span className="text-white/70">{getMarketLabel(bet.market.type)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/40">选择</span>
+                  <span className="text-white font-medium">{bet.option.label}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/40">投入</span>
+                  <span className="text-white">${bet.amount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/40">持有</span>
+                  <span className="text-white">{bet.shares.toFixed(2)} 股</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/40">买入价</span>
+                  <span className="text-white/70">${bet.price_at_bet.toFixed(2)}/股</span>
+                </div>
+                <div className="flex justify-between border-t border-white/10 pt-1.5">
+                  <span className="text-white/40">
+                    {bet.status === 'pending' ? '预计收益' : '实际收益'}
+                  </span>
+                  <span className={`font-bold ${
+                    isWon ? 'text-green-400' : isLost ? 'text-red-400' : 'text-gold'
+                  }`}>
+                    {isWon ? `+$${bet.estimated_payout.toFixed(2)}` :
+                     isLost ? '$0.00' :
+                     `$${bet.estimated_payout.toFixed(2)}`}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-white/20 text-[10px] mt-2">{formatDate(bet.created_at)}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {activeBets.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-3xl mb-2">
+            {tab === 'unsettled' ? '⏳' : '📜'}
+          </div>
+          <p className="text-white/40 text-sm">
+            {tab === 'unsettled' ? '暂无未结算的投注' : '暂无已结算的投注'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
