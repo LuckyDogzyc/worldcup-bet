@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Dark football theme - inspired by EA FC / FIFA game UI */
+  /* Dark football news theme */
   --color-pitch: #0a0e1a;
   --color-pitch-dark: #060912;
   --color-pitch-light: #111827;
@@ -18,23 +18,35 @@
 }
 
 body {
-  background: linear-gradient(160deg, #060912 0%, #0a0e1a 30%, #0f1628 60%, #111827 100%);
   color: #e8eaed;
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
 }
 
-/* Subtle hex grid overlay for game feel */
+/* Stadium background with overlay */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image:
-    radial-gradient(ellipse 800px 600px at 20% 30%, rgba(59, 130, 246, 0.03), transparent),
-    radial-gradient(ellipse 600px 800px at 80% 70%, rgba(212, 175, 55, 0.03), transparent);
-  pointer-events: none;
-  z-index: 0;
+  background:
+    url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1920&q=80') center/cover no-repeat,
+    linear-gradient(160deg, #060912 0%, #0a0e1a 30%, #0f1628 60%, #111827 100%);
+  z-index: -2;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(6, 9, 18, 0.88) 0%,
+    rgba(10, 14, 26, 0.92) 30%,
+    rgba(10, 14, 26, 0.95) 70%,
+    rgba(6, 9, 18, 0.98) 100%
+  );
+  z-index: -1;
 }
 
 /* Scrollbar */
@@ -66,11 +78,6 @@ body::before {
 @keyframes pulse-gold {
   0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.3); }
   50% { box-shadow: 0 0 12px 2px rgba(212, 175, 55, 0.1); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
 }
 
 .animate-fade-in {
@@ -171,4 +178,55 @@ body::before {
   background: #22c55e;
   animation: pulse-gold 1.5s infinite;
   display: inline-block;
+}
+
+/* Rules tooltip / guide */
+.rules-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: rgba(147, 197, 253, 0.8);
+  cursor: help;
+  position: relative;
+}
+
+.rules-badge:hover .rules-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.rules-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(15, 23, 42, 0.97);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-width: 220px;
+  max-width: 300px;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.rules-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(59, 130, 246, 0.25);
 }

@@ -51,6 +51,89 @@ interface BetModalState {
   option: Option;
 }
 
+// ─── 玩法说明组件 ────────────────────────────────────────
+function RulesGuide() {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="mb-4 glass-card overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-4 py-3 flex items-center justify-between text-left"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium text-white/70">
+          <span className="text-base">📖</span>
+          玩法说明
+        </span>
+        <svg
+          className={`w-4 h-4 text-white/40 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-3 animate-fade-in">
+          {/* 胜负 */}
+          <div className="flex gap-3">
+            <div className="shrink-0 w-16 text-right">
+              <span className="text-xs font-bold text-gold/80 px-2 py-0.5 rounded bg-gold/10">胜负</span>
+            </div>
+            <div className="text-white/50 text-xs leading-relaxed">
+              猜比赛最终结果。<strong className="text-white/70">主胜</strong> = 主队赢球；<strong className="text-white/70">平局</strong> = 打平；<strong className="text-white/70">客胜</strong> = 客队赢球。
+              <br />赔率 <strong className="text-white/70">2.50倍</strong> 表示投 $1 赢回 $2.50（净赚 $1.50）。
+            </div>
+          </div>
+
+          {/* 让球 */}
+          <div className="flex gap-3">
+            <div className="shrink-0 w-16 text-right">
+              <span className="text-xs font-bold text-blue-300/80 px-2 py-0.5 rounded bg-blue-500/10">让球</span>
+            </div>
+            <div className="text-white/50 text-xs leading-relaxed">
+              强队需要赢够指定球数才算胜出。
+              <br />例如 <strong className="text-white/70">巴西 -1.5</strong>：巴西需赢 2 球或以上（如 3:1、2:0），买巴西才算赢。如果只赢 1 球（如 2:1）或打平/输球，买<strong className="text-white/70">对手 +1.5</strong> 才算赢。
+            </div>
+          </div>
+
+          {/* 大小球 */}
+          <div className="flex gap-3">
+            <div className="shrink-0 w-16 text-right">
+              <span className="text-xs font-bold text-amber-300/80 px-2 py-0.5 rounded bg-amber-500/10">大小球</span>
+            </div>
+            <div className="text-white/50 text-xs leading-relaxed">
+              猜双方总进球数是否超过 2.5 球。
+              <br /><strong className="text-white/70">大于 2.5</strong>：总进球 ≥ 3 球算赢（如 2:1、3:0、2:2）。
+              <br /><strong className="text-white/70">小于 2.5</strong>：总进球 ≤ 2 球算赢（如 1:0、0:0、1:1）。
+            </div>
+          </div>
+
+          {/* 通用规则 */}
+          <div className="mt-2 pt-2 border-t border-white/5 text-white/30 text-[10px]">
+            💡 每个盘口每人只能投注一次。赔率随市场实时变动，以下注时赔率为准。
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── 行内规则提示 ────────────────────────────────────────
+function InlineRule({ type }: { type: string }) {
+  const tips: Record<string, string> = {
+    '胜负': '猜比赛结果：主赢/平/客赢',
+    '让球': '强队需赢≥2球才算赢让球盘',
+    '大小2.5': '总进球≥3球=大，≤2球=小',
+  };
+  const tip = tips[type];
+  if (!tip) return null;
+
+  return (
+    <span className="text-[9px] text-blue-300/50 ml-1" title={tip}>ⓘ</span>
+  );
+}
+
 export default function HomeClient({ username, balance: initialBalance }: { username: string; balance: number }) {
   const [balance, setBalance] = useState(initialBalance);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -111,10 +194,9 @@ export default function HomeClient({ username, balance: initialBalance }: { user
     ? matches.filter(m => m.tournament_id === activeTournament)
     : matches;
 
-  // Separate into categories
-  const matchBets = filtered.filter(m => m.away_team !== '其他' && m.status !== 'finished');
-  const outrightBets = filtered.filter(m => m.away_team === '其他' && m.status !== 'finished');
-  const finished = filtered.filter(m => m.status === 'finished');
+  // Separate: only regular matches (no outright), split by status
+  const upcomingMatches = filtered.filter(m => m.status !== 'finished');
+  const finishedMatches = filtered.filter(m => m.status === 'finished');
 
   if (loading) {
     return (
@@ -132,7 +214,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <div className="text-5xl mb-4">😔</div>
         <p className="text-red-400 mb-4">{error}</p>
-        <button onClick={fetchData} className="btn-primary">重新加载</button>
+        <button onClick={fetchData} className="btn-gold">重新加载</button>
       </div>
     );
   }
@@ -140,9 +222,8 @@ export default function HomeClient({ username, balance: initialBalance }: { user
   // ─── 对阵盘：卡片直接显示赔率 ────────────────────────────────────────
 
   const renderMatchCard = (match: Match) => {
-    const isFinished = match.status === 'finished';
     const tournament = tournaments.find(t => t.id === match.tournament_id);
-    // 取第一个1x2盘口
+    // 取盘口
     const mainMarket = match.markets.find(mk => mk.market_type === '1x2');
     const spreadMarket = match.markets.find(mk => mk.market_type === 'spread');
     const ouMarket = match.markets.find(mk => mk.market_type === 'ou25');
@@ -160,37 +241,27 @@ export default function HomeClient({ username, balance: initialBalance }: { user
 
         {/* 队伍 + 赔率 */}
         <div className="p-3 sm:p-4">
-          {isFinished && match.result_home !== null ? (
-            <div className="flex items-center justify-center gap-4 py-2">
-              <span className="text-white font-bold text-sm">{match.home_team}</span>
-              <span className="text-2xl font-black text-white">{match.result_home} : {match.result_away}</span>
-              <span className="text-white font-bold text-sm">{match.away_team}</span>
-            </div>
-          ) : (
-            <>
-              {/* 主盘口：3列赔率 */}
-              {mainMarket && (
-                <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-2">
-                  <div className="text-right">
-                    <p className="text-white font-bold text-sm sm:text-base">{match.home_team}</p>
-                  </div>
-                  <div className="text-center px-2">
-                    <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-gold/15 text-gold/70 border border-gold/20">VS</span>
-                  </div>
-                  <div>
-                    <p className="text-white font-bold text-sm sm:text-base">{match.away_team}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* 赔率按钮行 */}
-              <div className="space-y-2">
-                {mainMarket && renderOddsRow('胜负', mainMarket, match)}
-                {spreadMarket && renderOddsRow('让球', spreadMarket, match)}
-                {ouMarket && renderOddsRow('大小2.5', ouMarket, match)}
+          {/* 主盘口：3列赔率 */}
+          {mainMarket && (
+            <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-2">
+              <div className="text-right">
+                <p className="text-white font-bold text-sm sm:text-base">{match.home_team}</p>
               </div>
-            </>
+              <div className="text-center px-2">
+                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-gold/15 text-gold/70 border border-gold/20">VS</span>
+              </div>
+              <div>
+                <p className="text-white font-bold text-sm sm:text-base">{match.away_team}</p>
+              </div>
+            </div>
           )}
+
+          {/* 赔率按钮行 */}
+          <div className="space-y-2">
+            {mainMarket && renderOddsRow('胜负', mainMarket, match)}
+            {spreadMarket && renderOddsRow('让球', spreadMarket, match)}
+            {ouMarket && renderOddsRow('大小2.5', ouMarket, match)}
+          </div>
         </div>
       </div>
     );
@@ -204,6 +275,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
       <div>
         <div className="flex items-center gap-1 mb-1">
           <span className="text-[10px] text-white/30 font-medium">{label}</span>
+          <InlineRule type={label} />
           {hasBet && <span className="text-[9px] text-gold/60">已下注✓</span>}
         </div>
         <div className={`grid ${cols} gap-1.5`}>
@@ -226,147 +298,44 @@ export default function HomeClient({ username, balance: initialBalance }: { user
     );
   };
 
-  // ─── 冠军盘：赔率表格（Polymarket 风格） ────────────────────────────────
-
-  const renderOutrightSection = () => {
-    if (outrightBets.length === 0) return null;
-
-    // 按 round_name 分组（同一冠军盘口归为一组）
-    const groups: Record<string, { roundName: string; tournament: Tournament | undefined; items: Match[] }> = {};
-    for (const m of outrightBets) {
-      const key = `${m.tournament_id}_${m.round_name}`;
-      if (!groups[key]) {
-        const tournament = tournaments.find(t => t.id === m.tournament_id);
-        groups[key] = { roundName: m.round_name, tournament, items: [] };
-      }
-      groups[key].items.push(m);
-    }
-
-    return (
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span className="text-xl">🏆</span>
-          冠军盘口
-          <span className="text-xs text-white/30 font-normal ml-1">实时赔率来自 Polymarket</span>
-        </h2>
-        <div className="space-y-4">
-          {Object.values(groups).map(group => renderOutrightGroup(group))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderOutrightGroup = (group: { roundName: string; tournament: Tournament | undefined; items: Match[] }) => {
-    // 按价格排序（热门在前）
-    const sorted = [...group.items].sort((a, b) => {
-      const priceA = a.markets[0]?.options[0]?.price ?? 0;
-      const priceB = b.markets[0]?.options[0]?.price ?? 0;
-      return priceB - priceA;
-    });
-
-    return (
-      <div key={group.roundName} className="glass-card overflow-hidden">
-        {/* 标题栏 */}
-        <div className="px-4 py-2.5 flex items-center justify-between border-b border-white/10 bg-white/[0.03]">
-          <div className="flex items-center gap-2">
-            {group.tournament && <span className="text-sm">{group.tournament.icon}</span>}
-            <span className="text-sm font-bold text-white">{group.roundName}</span>
-          </div>
-          <span className="text-[10px] text-white/30">
-            {sorted.length} 支队伍
-          </span>
-        </div>
-
-        {/* 赔率列表 */}
-        <div className="divide-y divide-white/5">
-          {sorted.map(match => {
-            const market = match.markets[0];
-            if (!market) return null;
-            const yesOpt = market.options.find(o => o.label === '是');
-            const noOpt = market.options.find(o => o.label === '否');
-            if (!yesOpt) return null;
-
-            const hasBet = betMarketIds.has(market.id);
-            const yesOdds = priceToOdds(yesOpt.price);
-            const noOdds = noOpt ? priceToOdds(noOpt.price) : '-';
-
-            return (
-              <div
-                key={match.id}
-                className="px-4 py-2.5 flex items-center justify-between hover:bg-white/[0.03] transition-colors"
-              >
-                {/* 队伍名 */}
-                <span className="text-white font-medium text-sm min-w-[60px]">{match.home_team}</span>
-
-                {/* 赔率按钮 */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => !hasBet && setModal({
-                      match,
-                      market,
-                      option: yesOpt
-                    })}
-                    disabled={hasBet}
-                    className={`btn-price py-1 px-3 min-w-[56px] ${hasBet ? 'opacity-50' : ''}`}
-                  >
-                    <div className="text-[10px] text-white/40">赢</div>
-                    <div className={`text-sm font-bold ${oddsColor(yesOpt.price)}`}>{yesOdds}</div>
-                  </button>
-                  <button
-                    onClick={() => !hasBet && noOpt && setModal({
-                      match,
-                      market,
-                      option: noOpt
-                    })}
-                    disabled={hasBet}
-                    className={`btn-price py-1 px-3 min-w-[56px] ${hasBet ? 'opacity-50' : ''}`}
-                  >
-                    <div className="text-[10px] text-white/40">不赢</div>
-                    <div className={`text-xs font-bold text-white/40`}>{noOdds}</div>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
   // ─── 已结束比赛 ──────────────────────────────────────────────────────────
 
   const renderFinishedSection = () => {
-    if (finished.length === 0) return null;
+    if (finishedMatches.length === 0) return null;
     return (
       <div className="mb-8">
-        <h2 className="text-lg font-bold text-white/50 mb-4 flex items-center gap-2">
-          <span className="text-xl">✅</span>
-          已结束
-          <span className="text-sm text-white/30 font-normal ml-1">({finished.length})</span>
+        <h2 className="text-lg font-bold text-white/60 mb-4 flex items-center gap-2">
+          <span className="text-xl">📊</span>
+          比赛结果
+          <span className="text-sm text-white/30 font-normal ml-1">({finishedMatches.length})</span>
         </h2>
         <div className="space-y-2">
-          {finished.map(match => {
+          {finishedMatches.map(match => {
             const tournament = tournaments.find(t => t.id === match.tournament_id);
             return (
-              <div key={match.id} className="glass-card px-4 py-2.5 opacity-60">
+              <div key={match.id} className="glass-card px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className={`font-semibold ${(match.result_home ?? 0) > (match.result_away ?? 0) ? 'text-gold' : 'text-white/60'}`}>
-                      {match.home_team}
-                    </span>
-                    <span className="text-white/80 font-black text-base px-1">
-                      {match.result_home ?? '-'} - {match.result_away ?? '-'}
-                    </span>
-                    <span className={`font-semibold ${(match.result_away ?? 0) > (match.result_home ?? 0) ? 'text-gold' : 'text-white/60'}`}>
-                      {match.away_team}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className={`font-bold ${(match.result_home ?? 0) > (match.result_away ?? 0) ? 'text-gold' : 'text-white/70'}`}>
+                        {match.home_team}
+                      </span>
+                      <span className="text-white/90 font-black text-lg px-1.5 py-0.5 rounded bg-white/5">
+                        {match.result_home ?? '-'} : {match.result_away ?? '-'}
+                      </span>
+                      <span className={`font-bold ${(match.result_away ?? 0) > (match.result_home ?? 0) ? 'text-gold' : 'text-white/70'}`}>
+                        {match.away_team}
+                      </span>
+                    </div>
                     {match.result_home === match.result_away && match.result_home !== null && (
-                      <span className="text-[10px] text-white/30 ml-1">平局</span>
+                      <span className="text-[10px] text-amber-300/60 px-1.5 py-0.5 rounded bg-amber-300/10">平局</span>
                     )}
                   </div>
-                  <span className="text-[10px] text-white/30 shrink-0 ml-2">
-                    {tournament?.icon} {match.round_name}
-                  </span>
+                  <div className="text-right shrink-0 ml-3">
+                    <div className="text-[10px] text-white/25">
+                      {tournament?.icon} {match.round_name}
+                    </div>
+                  </div>
                 </div>
               </div>
             );
@@ -389,7 +358,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
   const tabInactive = 'bg-white/5 text-white/50 hover:bg-white/10';
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-4">
+    <div className="max-w-4xl mx-auto px-4 py-4 relative z-10">
       {/* Welcome banner - compact */}
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -405,6 +374,9 @@ export default function HomeClient({ username, balance: initialBalance }: { user
           <div className="text-lg font-black text-gold">${balance.toFixed(2)}</div>
         </div>
       </div>
+
+      {/* Rules guide */}
+      <RulesGuide />
 
       {/* Tournament tabs */}
       {tournaments.length > 0 && (
@@ -430,29 +402,26 @@ export default function HomeClient({ username, balance: initialBalance }: { user
         </div>
       )}
 
-      {/* 冠军盘口（赔率表） */}
-      {renderOutrightSection()}
+      {/* 已结束比赛 — 放在最上面，像新闻赛果 */}
+      {renderFinishedSection()}
 
-      {/* 对阵盘（卡片） */}
-      {matchBets.length > 0 && (
+      {/* 进行中 / 即将开始的比赛 */}
+      {upcomingMatches.length > 0 && (
         <div className="mb-8">
           <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-            <span className="text-xl">⚽</span>
+            <span className="text-xl">🏟️</span>
             比赛投注
-            <span className="text-sm text-white/30 font-normal ml-1">({matchBets.length})</span>
+            <span className="text-sm text-white/30 font-normal ml-1">({upcomingMatches.length})</span>
           </h2>
           <div className="space-y-3">
-            {matchBets.map(match => renderMatchCard(match))}
+            {upcomingMatches.map(match => renderMatchCard(match))}
           </div>
         </div>
       )}
 
-      {/* 已结束 */}
-      {renderFinishedSection()}
-
       {filtered.length === 0 && (
         <div className="text-center py-20">
-          <div className="text-5xl mb-4">🏟️</div>
+          <div className="text-5xl mb-4">⚽</div>
           <p className="text-white/40">暂无比赛数据</p>
           <p className="text-white/20 text-sm mt-1">赔率同步启动后将自动拉取赛事</p>
         </div>

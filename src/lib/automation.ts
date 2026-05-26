@@ -557,6 +557,11 @@ async function syncUpcomingEvents(stats: SyncStats): Promise<void> {
 
 async function syncMarket(db: any, tournamentId: number, market: any, eventTitle: string, stats: SyncStats): Promise<void> {
   const question = String(market.question || '');
+
+  // 跳过冠军盘（outright）— 只保留实际对阵比赛
+  // syncPolymarketSportsGames 处理真实比赛，此处只做 odds 更新辅助
+  const isOutright = /^(Will\s|.+?\s+to\s+win|.+?\s+champion|.+?\s+wins?\s+the)/i.test(question);
+  if (isOutright) return;
   const polymarketId = String(market.id || '');
   const outcomes = market.outcomes;
   const prices = parseOutcomePrices(market.outcomePrices);

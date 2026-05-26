@@ -98,6 +98,21 @@ export async function POST(request: Request) {
             }
             break;
 
+          case 'spread': {
+            // Label format: "{home_team} -1.5" and "{away_team} +1.5"
+            // -1.5 (home) wins if home - away >= 2
+            // +1.5 (away) wins if home - away <= 1
+            const diff = home - away;
+            const homeMinusLabel = `${match.home_team} -1.5`;
+            const awayPlusLabel = `${match.away_team} +1.5`;
+            if (diff >= 2) {
+              winningLabel = homeMinusLabel;
+            } else {
+              winningLabel = awayPlusLabel;
+            }
+            break;
+          }
+
           case 'cs': {
             const scoreStr = `${home}:${away}`;
             const validScores = [
