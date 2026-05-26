@@ -122,7 +122,7 @@ export default function LeaderboardClient() {
                       <tr
                         key={entry.id}
                         className={`border-b border-white/5 transition-colors ${
-                          isMe ? 'bg-pitch-light/30 border-pitch-light/40' : topStyle
+                          isMe ? 'bg-blue-500/15 border-blue-500/30' : topStyle
                         }`}
                       >
                         <td className="px-4 py-3">

@@ -393,8 +393,8 @@ export default function HomeClient({ username, balance: initialBalance }: { user
       {/* Welcome banner - compact */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">
-            🏟️ 体育竞猜
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            ⚽ 体育竞猜
           </h1>
           <p className="text-white/30 text-xs mt-0.5">
             欢迎，<span className="text-white/60">{username}</span> · 赔率来自 Polymarket

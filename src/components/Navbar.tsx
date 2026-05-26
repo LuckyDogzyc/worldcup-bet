@@ -62,8 +62,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="text-2xl">🏟️</span>
-            <span className="text-lg font-bold text-gold hidden sm:block">体育竞猜</span>
+            <span className="text-2xl">⚽</span>
+            <span className="text-lg font-bold text-gold hidden sm:block tracking-tight">体育竞猜</span>
           </Link>
 
           {/* Desktop nav links */}

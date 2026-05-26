@@ -1,52 +1,76 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-pitch: #0d4a1c;
-  --color-pitch-dark: #082e12;
-  --color-pitch-light: #1a6b2a;
+  /* Dark football theme - inspired by EA FC / FIFA game UI */
+  --color-pitch: #0a0e1a;
+  --color-pitch-dark: #060912;
+  --color-pitch-light: #111827;
   --color-gold: #d4af37;
   --color-gold-light: #e6c85b;
   --color-gold-dark: #b8962e;
-  --color-card: rgba(255, 255, 255, 0.08);
-  --color-card-hover: rgba(255, 255, 255, 0.12);
-  --color-card-border: rgba(255, 255, 255, 0.15);
+  --color-card: rgba(255, 255, 255, 0.05);
+  --color-card-hover: rgba(255, 255, 255, 0.08);
+  --color-card-border: rgba(255, 255, 255, 0.08);
+  --color-accent: #3b82f6;
+  --color-accent-light: #60a5fa;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: linear-gradient(135deg, #082e12 0%, #0d4a1c 40%, #1a6b2a 100%);
-  color: #f0f0f0;
+  background: linear-gradient(160deg, #060912 0%, #0a0e1a 30%, #0f1628 60%, #111827 100%);
+  color: #e8eaed;
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   min-height: 100vh;
+  position: relative;
+}
+
+/* Subtle hex grid overlay for game feel */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 800px 600px at 20% 30%, rgba(59, 130, 246, 0.03), transparent),
+    radial-gradient(ellipse 600px 800px at 80% 70%, rgba(212, 175, 55, 0.03), transparent);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.3);
   border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
 }
 
 /* Custom animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.3); }
+  50% { box-shadow: 0 0 12px 2px rgba(212, 175, 55, 0.1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .animate-fade-in {
@@ -61,45 +85,47 @@ body {
   animation: pulse-gold 2s infinite;
 }
 
-/* Glass card base */
+/* Glass card base - darker, more game-like */
 .glass-card {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Gold button */
+/* Gold button - game style with glow */
 .btn-gold {
   background: linear-gradient(135deg, #d4af37, #e6c85b);
-  color: #0d4a1c;
+  color: #0a0e1a;
   font-weight: 700;
   border-radius: 8px;
   padding: 8px 20px;
   transition: all 0.2s;
   cursor: pointer;
   border: none;
+  letter-spacing: 0.5px;
 }
 .btn-gold:hover {
   background: linear-gradient(135deg, #e6c85b, #f0d96b);
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.35);
 }
 .btn-gold:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-/* Price button - 体彩赔率按钮风格 */
+/* Price button - sporty odds button */
 .btn-price {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: white;
   border-radius: 6px;
   padding: 6px 10px;
@@ -113,25 +139,36 @@ body {
   gap: 1px;
 }
 .btn-price:hover {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.3);
   transform: translateY(-1px);
 }
 .btn-price:active {
   transform: translateY(0);
 }
 .btn-price.bet-placed {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.35);
 }
 
-/* Pitch stripe pattern (subtle) */
+/* Pitch pattern - diagonal lines for game feel */
 .pitch-pattern {
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 40px,
-    rgba(255, 255, 255, 0.02) 40px,
-    rgba(255, 255, 255, 0.02) 80px
-  );
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 60px,
+      rgba(255, 255, 255, 0.01) 60px,
+      rgba(255, 255, 255, 0.01) 120px
+    );
+}
+
+/* Match card live indicator */
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse-gold 1.5s infinite;
+  display: inline-block;
 }

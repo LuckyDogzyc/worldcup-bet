@@ -75,13 +75,13 @@ export function getStatusLabel(status: string): string {
 
 /**
  * Returns a Tailwind text-color class based on the API price.
- * User preference: probabilities/odds should use green tones, never red.
+ * High odds (big payout) → gold (exciting), mid → white, low → muted blue.
  */
 export function oddsColor(price: number): string {
-  if (price <= 0) return 'text-gray-400';
-  if (price >= 0.6) return 'text-green-300';
-  if (price >= 0.35) return 'text-emerald-300';
-  return 'text-lime-300';
+  if (price <= 0) return 'text-gray-500';
+  if (price >= 0.6) return 'text-gray-200';       // heavy favorite → clean white
+  if (price >= 0.35) return 'text-blue-300';      // mid range → sporty blue
+  return 'text-amber-300';                         // underdog (big payout) → gold
 }
 
 /**
