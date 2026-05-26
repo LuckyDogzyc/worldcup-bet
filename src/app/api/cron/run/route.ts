@@ -5,17 +5,13 @@ import { ensureInitialized } from '@/lib/init-app';
 /**
  * GET /api/cron/run
  *
- * Runs full automation: sync events → update odds → auto-settle.
- * Protected by CRON_SECRET query param (if set in env).
- *
- * Usage:
- *   curl "http://localhost:3100/api/cron/run?secret=YOUR_CRON_SECRET"
- *   curl "http://localhost:3100/api/cron/run"  (if CRON_SECRET not set)
+ * 通过 Polymarket Gamma API 运行自动化：发现赛事 → 更新赔率 → 自动结算。
+ * 可选 CRON_SECRET 查询参数保护。
  */
 export async function GET(request: Request) {
   ensureInitialized();
 
-  // Check CRON_SECRET if configured
+  // 检查 CRON_SECRET（如果配置了）
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
     const { searchParams } = new URL(request.url);
@@ -28,22 +24,11 @@ export async function GET(request: Request) {
     }
   }
 
-  const apiKey = process.env.ODDS_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      {
-        error: 'ODDS_API_KEY not configured',
-        hint: 'Set ODDS_API_KEY in .env (get one free at the-odds-api.com)',
-      },
-      { status: 400 }
-    );
-  }
-
   try {
-    const result = await runAllAutomation(apiKey);
+    const result = await runAllAutomation();
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
-    console.error('[cron/run] Automation error:', error);
+    console.error('[cron/run] 自动化错误:', error);
     return NextResponse.json(
       { error: 'Automation run failed', detail: String(error) },
       { status: 500 }
