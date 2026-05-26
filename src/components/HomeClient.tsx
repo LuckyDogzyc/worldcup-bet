@@ -294,7 +294,8 @@ export default function HomeClient({ username, balance: initialBalance }: { user
     tournamentCounts[m.tournament_id].total++;
     if (m.status === 'upcoming') tournamentCounts[m.tournament_id].upcoming++;
   }
-  const totalUpcoming = matches.filter(m => m.status === 'upcoming').length;
+  // Total count for "全部" tab (all matches including finished)
+  const totalCount = matches.length;
 
   const tabBase = 'shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all';
   const tabActive = 'bg-gold/20 text-gold border border-gold/30';
@@ -325,7 +326,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
             onClick={() => setActiveTournament(null)}
             className={`${tabBase} ${activeTournament === null ? tabActive : tabInactive}`}
           >
-            全部 <span className="text-xs opacity-70">({totalUpcoming})</span>
+            全部 <span className="text-xs opacity-70">({totalCount})</span>
           </button>
           {tournaments.map(t => {
             const counts = tournamentCounts[t.id];
@@ -335,7 +336,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
                 onClick={() => setActiveTournament(activeTournament === t.id ? null : t.id)}
                 className={`${tabBase} ${activeTournament === t.id ? tabActive : tabInactive}`}
               >
-                {t.icon} {t.name} <span className="text-xs opacity-70">({counts?.upcoming ?? 0})</span>
+                {t.icon} {t.name} <span className="text-xs opacity-70">({counts?.total ?? 0})</span>
               </button>
             );
           })}
@@ -356,7 +357,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
       )}
 
       <div className="text-center text-white/20 text-[10px] mt-8">
-        赔率每分钟自动刷新 · 上次更新 {lastRefresh.toLocaleTimeString('zh-CN')}
+        赔率每分钟自动刷新 · 上次更新 {lastRefresh.toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })}
       </div>
 
       {modal && (

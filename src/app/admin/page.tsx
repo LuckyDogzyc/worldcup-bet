@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getStatusLabel as statusLabel } from '@/lib/utils';
+import { getStatusLabel as statusLabel, formatTime as fmtTime } from '@/lib/utils';
 
 interface Tournament {
   id: number;
@@ -152,6 +152,15 @@ export default function AdminPage() {
   if (!isAdmin) return null;
 
   const upcomingMatches = matches.filter((m) => m.status === 'upcoming' || m.status === 'live');
+
+  // Sort matches: upcoming/live first (by time), then finished
+  const sortedMatches = [...matches].sort((a, b) => {
+    const statusOrder: Record<string, number> = { live: 0, upcoming: 1, finished: 2 };
+    const sa = statusOrder[a.status] ?? 3;
+    const sb = statusOrder[b.status] ?? 3;
+    if (sa !== sb) return sa - sb;
+    return new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime();
+  });
 
   const getTournamentName = (tid: number) => {
     const t = tournaments.find(t => t.id === tid);
@@ -330,18 +339,20 @@ export default function AdminPage() {
                   <th className="text-left text-white/40 font-medium px-4 py-2">赛事</th>
                   <th className="text-left text-white/40 font-medium px-4 py-2">比赛</th>
                   <th className="text-left text-white/40 font-medium px-4 py-2">轮次</th>
+                  <th className="text-left text-white/40 font-medium px-4 py-2 hidden sm:table-cell">开赛</th>
                   <th className="text-center text-white/40 font-medium px-4 py-2">状态</th>
                   <th className="text-center text-white/40 font-medium px-4 py-2">比分</th>
                 </tr>
               </thead>
               <tbody>
-                {matches.map((m) => (
-                  <tr key={m.id} className="border-b border-white/5">
+                {sortedMatches.map((m) => (
+                  <tr key={m.id} className={`border-b border-white/5 ${m.status === 'finished' ? 'opacity-60' : ''}`}>
                     <td className="px-4 py-2 text-white/50 text-xs">{getTournamentName(m.tournament_id)}</td>
                     <td className="px-4 py-2 text-white font-medium">
                       {m.home_team} vs {m.away_team}
                     </td>
                     <td className="px-4 py-2 text-white/50">{m.round_name || '-'}</td>
+                    <td className="px-4 py-2 text-white/40 text-xs hidden sm:table-cell">{fmtTime(m.kickoff_time)}</td>
                     <td className="px-4 py-2 text-center">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyle(m.status)}`}>
                         {statusLabel(m.status)}
