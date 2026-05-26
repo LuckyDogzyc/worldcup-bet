@@ -121,16 +121,36 @@ function RulesGuide() {
 
 // ─── 行内规则提示 ────────────────────────────────────────
 function InlineRule({ type }: { type: string }) {
+  const [open, setOpen] = useState(false);
   const tips: Record<string, string> = {
-    '胜负': '猜比赛结果：主赢/平/客赢',
-    '让球': '强队需赢≥2球才算赢让球盘',
-    '大小2.5': '总进球≥3球=大，≤2球=小',
+    '胜负': '主胜=左侧主场球队赢；平局=打平；客胜=右侧客场球队赢。',
+    '让球': '-1.5 表示该队必须赢 2 球或以上；+1.5 表示该队最多输 1 球也算赢。',
+    '大小2.5': '两队总进球 ≥3 是大于2.5；总进球 ≤2 是小于等于2.5。',
   };
   const tip = tips[type];
   if (!tip) return null;
 
   return (
-    <span className="text-[9px] text-blue-300/50 ml-1" title={tip}>ⓘ</span>
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        className="text-[10px] text-blue-300/70 hover:text-blue-200 ml-1 px-1 rounded-full bg-blue-500/10 border border-blue-400/20"
+        aria-label={type + '规则说明'}
+      >
+        ⓘ
+      </button>
+      {open && (
+        <span className="absolute left-0 top-5 z-30 w-64 rounded-lg border border-blue-400/25 bg-[#07111f]/95 px-3 py-2 text-[11px] leading-relaxed text-white/75 shadow-2xl shadow-black/40 backdrop-blur">
+          {tip}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -245,12 +265,14 @@ export default function HomeClient({ username, balance: initialBalance }: { user
           {mainMarket && (
             <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-2">
               <div className="text-right">
+                <span className="inline-flex items-center gap-1 text-[10px] text-blue-200/70 bg-blue-500/10 border border-blue-400/20 rounded-full px-2 py-0.5 mb-1">主场</span>
                 <p className="text-white font-bold text-sm sm:text-base">{match.home_team}</p>
               </div>
               <div className="text-center px-2">
                 <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-gold/15 text-gold/70 border border-gold/20">VS</span>
               </div>
               <div>
+                <span className="inline-flex items-center gap-1 text-[10px] text-amber-200/70 bg-amber-500/10 border border-amber-400/20 rounded-full px-2 py-0.5 mb-1">客场</span>
                 <p className="text-white font-bold text-sm sm:text-base">{match.away_team}</p>
               </div>
             </div>

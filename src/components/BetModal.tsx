@@ -77,6 +77,23 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
     ? matchInfo.home_team
     : `${matchInfo.home_team} vs ${matchInfo.away_team}`;
 
+  const selectionHint = (() => {
+    if (marketInfo.type === '1x2') {
+      if (option.label === '主胜') return '你选择的是：主场球队获胜';
+      if (option.label === '客胜') return '你选择的是：客场球队获胜';
+      if (option.label === '平局') return '你选择的是：双方打平';
+    }
+    if (marketInfo.type === 'spread') {
+      if (option.label.includes('-1.5')) return '让球 -1.5：该队必须赢 2 球或以上才算赢';
+      if (option.label.includes('+1.5')) return '受让 +1.5：该队最多输 1 球也算赢';
+    }
+    if (marketInfo.type === 'ou25') {
+      if (option.label.includes('大于')) return '大于2.5：双方总进球 ≥ 3 球算赢';
+      return '小于等于2.5：双方总进球 ≤ 2 球算赢';
+    }
+    return '';
+  })();
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -107,6 +124,20 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
           ) : (
             <>
               {/* Selection summary */}
+              {!isOutright && (
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-3 rounded-lg bg-white/[0.03] border border-white/5 p-3">
+                  <div className="text-right">
+                    <span className="inline-block text-[10px] text-blue-200/75 bg-blue-500/10 border border-blue-400/20 rounded-full px-2 py-0.5 mb-1">主场</span>
+                    <p className="text-white font-bold text-sm">{matchInfo.home_team}</p>
+                  </div>
+                  <span className="text-[10px] font-black text-gold/60 px-2">VS</span>
+                  <div>
+                    <span className="inline-block text-[10px] text-amber-200/75 bg-amber-500/10 border border-amber-400/20 rounded-full px-2 py-0.5 mb-1">客场</span>
+                    <p className="text-white font-bold text-sm">{matchInfo.away_team}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white/5 rounded-lg p-4 mb-5 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-white/50">市场</span>
@@ -118,6 +149,11 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                   <span className="text-white/50">选择</span>
                   <span className="text-gold font-bold">{selectionLabel}</span>
                 </div>
+                {selectionHint && (
+                  <div className="rounded-md bg-blue-500/10 border border-blue-400/20 px-3 py-2 text-[11px] text-blue-100/75 leading-relaxed">
+                    {selectionHint}
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-white/50">赔率</span>
                   <span className="text-gold font-bold text-base">{oddsDisplay} 倍</span>

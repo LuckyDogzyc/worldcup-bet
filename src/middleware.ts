@@ -48,8 +48,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Leaderboard is public (read-only)
-  if (pathname === '/api/leaderboard' || pathname === '/leaderboard') {
+  // Leaderboard and player public profile pages are public (read-only)
+  if (
+    pathname === '/api/leaderboard' ||
+    pathname === '/leaderboard' ||
+    pathname.startsWith('/players/') ||
+    pathname.startsWith('/api/players/')
+  ) {
     return NextResponse.next();
   }
 

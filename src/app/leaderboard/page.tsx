@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface LeaderboardEntry {
   id: number;
@@ -77,26 +78,29 @@ export default function LeaderboardClient() {
               {/* 2nd place */}
               <div className="text-center">
                 <div className="text-3xl mb-1">🥈</div>
-                <div className="glass-card px-4 pt-3 pb-4 border-gray-400/20 w-28">
+                <Link href={'/players/' + data[1].id} className="glass-card block px-4 pt-3 pb-4 border-gray-400/20 w-28 hover:border-gray-300/40 hover:bg-white/10 transition-all">
                   <p className="text-white font-bold text-sm truncate">{data[1].username}</p>
                   <p className="text-white/50 text-xs mt-1">${data[1].total_assets.toFixed(0)}</p>
-                </div>
+                  <p className="text-white/25 text-[10px] mt-1">查看档案</p>
+                </Link>
               </div>
               {/* 1st place */}
               <div className="text-center">
                 <div className="text-4xl mb-1">🥇</div>
-                <div className="glass-card px-5 pt-4 pb-5 border-gold/30 w-32">
+                <Link href={'/players/' + data[0].id} className="glass-card block px-5 pt-4 pb-5 border-gold/30 w-32 hover:border-gold/50 hover:bg-gold/10 transition-all">
                   <p className="text-gold font-bold text-base truncate">{data[0].username}</p>
                   <p className="text-gold/70 text-sm mt-1 font-bold">${data[0].total_assets.toFixed(0)}</p>
-                </div>
+                  <p className="text-gold/35 text-[10px] mt-1">查看档案</p>
+                </Link>
               </div>
               {/* 3rd place */}
               <div className="text-center">
                 <div className="text-3xl mb-1">🥉</div>
-                <div className="glass-card px-4 pt-2 pb-3 border-amber-700/20 w-28">
+                <Link href={'/players/' + data[2].id} className="glass-card block px-4 pt-2 pb-3 border-amber-700/20 w-28 hover:border-amber-500/40 hover:bg-white/10 transition-all">
                   <p className="text-white font-bold text-sm truncate">{data[2].username}</p>
                   <p className="text-white/50 text-xs mt-1">${data[2].total_assets.toFixed(0)}</p>
-                </div>
+                  <p className="text-white/25 text-[10px] mt-1">查看档案</p>
+                </Link>
               </div>
             </div>
           )}
@@ -121,7 +125,7 @@ export default function LeaderboardClient() {
                     return (
                       <tr
                         key={entry.id}
-                        className={`border-b border-white/5 transition-colors ${
+                        className={`border-b border-white/5 transition-colors hover:bg-white/5 ${
                           isMe ? 'bg-blue-500/15 border-blue-500/30' : topStyle
                         }`}
                       >
@@ -133,10 +137,11 @@ export default function LeaderboardClient() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`font-medium ${isMe ? 'text-gold' : 'text-white'}`}>
+                          <Link href={'/players/' + entry.id} className={`font-medium hover:underline underline-offset-4 ${isMe ? 'text-gold' : 'text-white'}`}>
                             {entry.username}
                             {isMe && <span className="text-xs text-gold/60 ml-1">(我)</span>}
-                          </span>
+                            <span className="text-[10px] text-white/25 ml-2">查看</span>
+                          </Link>
                         </td>
                         <td className="px-4 py-3 text-right text-white/70">${entry.balance.toFixed(2)}</td>
                         <td className="px-4 py-3 text-right text-white/50 hidden sm:table-cell">
