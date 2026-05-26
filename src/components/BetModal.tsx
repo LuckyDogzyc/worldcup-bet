@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { priceToOdds as calcOdds, getMarketLabel } from '@/lib/utils';
+import { useState, useEffect, useRef } from 'react';
+import { priceToOdds as calcOdds, getMarketLabel, formatTime } from '@/lib/utils';
 
 interface BetModalProps {
   matchInfo: { home_team: string; away_team: string; kickoff_time?: string };
@@ -20,7 +20,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  // Guard against price <= 0 to prevent Infinity
+  const isOutright = matchInfo.away_team === '其他';
   const safeOdds = option.price > 0 ? (1 / option.price) : 0;
   const estimatedReturn = amount * safeOdds;
   const estimatedProfit = estimatedReturn - amount;
@@ -68,6 +68,15 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
 
   const oddsDisplay = calcOdds(option.price);
 
+  // 冠军盘口选择描述
+  const selectionLabel = isOutright
+    ? `${matchInfo.home_team} ${option.label === '是' ? '赢' : '不赢'}`
+    : option.label;
+
+  const matchLabel = isOutright
+    ? matchInfo.home_team
+    : `${matchInfo.home_team} vs ${matchInfo.away_team}`;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -80,9 +89,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-bold text-white">🎯 下注确认</h3>
-              <p className="text-white/50 text-sm mt-0.5">
-                {matchInfo.home_team} vs {matchInfo.away_team}
-              </p>
+              <p className="text-white/50 text-sm mt-0.5">{matchLabel}</p>
             </div>
             <button onClick={onClose} aria-label="关闭" className="text-white/40 hover:text-white transition-colors p-1">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,11 +110,13 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
               <div className="bg-white/5 rounded-lg p-4 mb-5 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-white/50">市场</span>
-                  <span className="text-white font-medium">{getMarketLabel(marketInfo.type)}</span>
+                  <span className="text-white font-medium">
+                    {isOutright ? '冠军盘' : getMarketLabel(marketInfo.type)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/50">选择</span>
-                  <span className="text-gold font-bold">{option.label}</span>
+                  <span className="text-gold font-bold">{selectionLabel}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/50">赔率</span>
@@ -116,10 +125,10 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                 {matchInfo.kickoff_time && (
                   <div className="flex justify-between text-sm">
                     <span className="text-white/50">⏱ 开赛时间</span>
-                    <span className="text-white/70">{new Date(matchInfo.kickoff_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                    <span className="text-white/70">{formatTime(matchInfo.kickoff_time)}</span>
                   </div>
                 )}
-                <div className="text-xs text-white/40 pt-1 border-t border-white/10">
+                <div className="text-xs text-white/30 pt-1 border-t border-white/10">
                   💡 投 $1 → 赢了得 ${oddsDisplay} · 比赛结束后自动结算
                 </div>
               </div>
