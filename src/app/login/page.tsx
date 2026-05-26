@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">⚽ 体育竞猜</h1>
-          <p className="text-gold/60 text-sm">世界杯 · 欧冠 · NBA · 更多</p>
+          <p className="text-gold/60 text-sm">2026 FIFA 世界杯 · 欧冠</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

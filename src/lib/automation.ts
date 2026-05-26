@@ -27,7 +27,6 @@ interface SportsLeagueConfig {
 const SPORTS_LEAGUES: SportsLeagueConfig[] = [
   { webSlug: 'fifa-world-cup', tournamentName: '2026 FIFA 世界杯', tournamentSlug: 'worldcup-2026', icon: '⚽', sport: 'football', sortOrder: 1 },
   { webSlug: 'ucl', tournamentName: '欧冠 2026', tournamentSlug: 'ucl-2026', icon: '🏅', sport: 'football', sortOrder: 2 },
-  { webSlug: 'nba', tournamentName: 'NBA 2025-26', tournamentSlug: 'nba-2026', icon: '🏀', sport: 'basketball', sortOrder: 3 },
 ];
 
 // ─── 赛事识别规则 ──────────────────────────────────────────────────────
@@ -50,7 +49,6 @@ const EVENT_PATTERNS: EventPattern[] = [
   { keywords: ['champions league', 'ucl'], tournamentName: '欧冠', tournamentSlug: 'ucl-2026', icon: '🏅', sport: 'football' },
   { keywords: ['euro 2028', 'euro championship'], tournamentName: '欧洲杯', tournamentSlug: 'euro', icon: '🇪🇺', sport: 'football' },
   { keywords: ['premier league', 'epl'], tournamentName: '英超', tournamentSlug: 'epl', icon: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', sport: 'football' },
-  { keywords: ['nba'], tournamentName: 'NBA', tournamentSlug: 'nba-2026', icon: '🏀', sport: 'basketball' },
   { keywords: ['french open', 'roland garros'], tournamentName: '法网', tournamentSlug: 'roland-garros-2026', icon: '🎾', sport: 'tennis' },
   { keywords: ['wimbledon'], tournamentName: '温网', tournamentSlug: 'wimbledon', icon: '🎾', sport: 'tennis' },
   { keywords: ['us open tennis'], tournamentName: '美网', tournamentSlug: 'us-open-tennis', icon: '🎾', sport: 'tennis' },
@@ -102,11 +100,6 @@ const NAME_ZH: Record<string, string> = {
   'Real Madrid': '皇家马德里', 'Arsenal': '阿森纳', 'Barcelona': '巴塞罗那',
   'Manchester City': '曼城', 'Bayern Munich': '拜仁慕尼黑', 'Inter Milan': '国际米兰',
   'Paris Saint-Germain': '巴黎圣日耳曼', 'PSG': '巴黎圣日耳曼',
-  'Oklahoma City Thunder': '雷霆', 'Cleveland Cavaliers': '骑士',
-  'New York Knicks': '尼克斯', 'Boston Celtics': '凯尔特人',
-  'Denver Nuggets': '掘金', 'Houston Rockets': '火箭',
-  'San Antonio Spurs': '马刺', 'Los Angeles Lakers': '湖人',
-  'Golden State Warriors': '勇士', 'Miami Heat': '热火',
   'Alcaraz': '阿尔卡拉斯', 'Sinner': '辛纳', 'Djokovic': '德约科维奇',
   'Swiatek': '斯瓦泰克', 'Gauff': '高芙', 'Sabalenka': '萨巴伦卡',
 };
