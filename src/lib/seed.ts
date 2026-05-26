@@ -16,6 +16,7 @@ const TOURNAMENTS: TournamentSeed[] = [
   { name: '欧冠决赛 2026', slug: 'ucl-final-2026', icon: '🏅', sport: 'football', start_date: '2026-05-30', end_date: '2026-05-30', status: 'upcoming', sort_order: 2 },
   { name: '法网 2026', slug: 'roland-garros-2026', icon: '🎾', sport: 'tennis', start_date: '2026-05-24', end_date: '2026-06-07', status: 'live', sort_order: 3 },
   { name: 'NBA 总决赛 2026', slug: 'nba-finals-2026', icon: '🏀', sport: 'basketball', start_date: '2026-06-04', end_date: '2026-06-22', status: 'upcoming', sort_order: 4 },
+  { name: '欧冠决赛 2025', slug: 'ucl-final-2025', icon: '🏆', sport: 'football', start_date: '2025-05-31', end_date: '2025-05-31', status: 'finished', sort_order: 10 },
 ];
 
 interface MatchSeed {
@@ -30,7 +31,10 @@ interface MatchSeed {
 }
 
 const MATCHES: MatchSeed[] = [
-  // === 欧冠决赛 (May 30, Budapest) ===
+  // === 欧冠决赛 2025 (已结束 - 巴黎圣日耳曼 5-0 国际米兰) ===
+  { home_team: '巴黎圣日耳曼', away_team: '国际米兰', round_name: '决赛 · 慕尼黑', kickoff_time: '2025-05-31T21:00:00+02:00', status: 'finished', result_home: 5, result_away: 0, tournament_slug: 'ucl-final-2025' },
+
+  // === 欧冠决赛 2026 (May 30, Budapest) ===
   { home_team: '皇家马德里', away_team: '曼城', round_name: '决赛 · 布达佩斯', kickoff_time: '2026-05-30T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'ucl-final-2026' },
 
   // === 法网决赛 (June 6-7, Paris) ===
@@ -96,6 +100,17 @@ const MARKET_DEFS_BASKETBALL: Record<string, { description: string; options: Opt
 
 // Custom prices for specific matches
 const CUSTOM_PRICES: Record<string, Record<string, OptionDef[]>> = {
+  '巴黎圣日耳曼 vs 国际米兰': {
+    '1x2': [
+      { label: '主胜', price: 0.55 },
+      { label: '平局', price: 0.22 },
+      { label: '客胜', price: 0.23 },
+    ],
+    ou25: [
+      { label: '大于 2.5 球', price: 0.50 },
+      { label: '小于等于 2.5 球', price: 0.50 },
+    ],
+  },
   '皇家马德里 vs 曼城': {
     '1x2': [
       { label: '主胜', price: 0.42 },

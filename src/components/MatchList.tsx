@@ -103,12 +103,19 @@ export default function MatchList({ balance, onBalanceChange }: { balance: numbe
   const formatTime = (iso: string) => {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleString('zh-CN', {
-      month: 'numeric',
-      day: 'numeric',
+    const parts = new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+      month: '2-digit',
+      day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-    });
+      hour12: false,
+    }).formatToParts(d);
+    const month = parts.find(p => p.type === 'month')?.value ?? '??';
+    const day = parts.find(p => p.type === 'day')?.value ?? '??';
+    const hour = parts.find(p => p.type === 'hour')?.value ?? '??';
+    const minute = parts.find(p => p.type === 'minute')?.value ?? '??';
+    return `${month}月${day}日 ${hour}:${minute}`;
   };
 
   const getMarketLabel = (type: string) => {

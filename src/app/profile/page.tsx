@@ -70,9 +70,21 @@ export default function ProfileClient() {
   const netPL = totalWon - totalLost;
 
   const formatDate = (iso: string) => {
-    const d = new Date(iso + (iso.includes('Z') ? '' : 'Z'));
+    const d = new Date(iso + (iso.includes('Z') || iso.includes('+') ? '' : 'Z'));
     if (isNaN(d.getTime())) return '未知时间';
-    return d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const parts = new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(d);
+    const month = parts.find(p => p.type === 'month')?.value ?? '??';
+    const day = parts.find(p => p.type === 'day')?.value ?? '??';
+    const hour = parts.find(p => p.type === 'hour')?.value ?? '??';
+    const minute = parts.find(p => p.type === 'minute')?.value ?? '??';
+    return `${month}月${day}日 ${hour}:${minute}`;
   };
 
   const activeBets = tab === 'unsettled' ? unsettled : settled;

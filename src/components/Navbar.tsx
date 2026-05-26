@@ -43,6 +43,9 @@ export default function Navbar() {
     window.location.href = '/login';
   };
 
+  // Hide navbar on login page
+  if (pathname === '/login') return null;
+
   const navLinks = [
     { href: '/', label: '🏠 首页' },
     { href: '/leaderboard', label: '🏆 排行榜' },

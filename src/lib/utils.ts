@@ -4,21 +4,19 @@
  */
 
 /**
- * Converts an API price (0–1 probability) to a decimal odds multiplier.
- * Returns 0 if the price is invalid (≤ 0).
+ * Converts an API price (0–1 probability) to a formatted odds string with 2 decimal places.
+ * Returns "0.00" if the price is invalid (≤ 0).
  */
-export function priceToOdds(price: number): number {
-  if (price <= 0) return 0;
-  return 1 / price;
+export function priceToOdds(price: number): string {
+  if (price <= 0) return '0.00';
+  return (1 / price).toFixed(2);
 }
 
 /**
  * Returns a formatted odds string like "2.50倍" from an API price.
  */
 export function formatOdds(price: number): string {
-  const odds = priceToOdds(price);
-  if (odds === 0) return '0.00倍';
-  return `${odds.toFixed(2)}倍`;
+  return `${priceToOdds(price)}倍`;
 }
 
 /**
@@ -86,15 +84,26 @@ export function oddsColor(price: number): string {
 }
 
 /**
- * Formats an ISO date string to 'MM月DD日 HH:mm' (Chinese-style date/time).
+ * Formats an ISO date string to 'MM月DD日 HH:mm' in Beijing time (UTC+8).
  * Returns '时间待定' if the input cannot be parsed.
  */
 export function formatTime(dateStr: string): string {
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '时间待定';
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${month}月${day}日 ${hours}:${minutes}`;
+  // Use toLocaleString with Asia/Shanghai timezone for Beijing time
+  const parts = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const month = parts.find(p => p.type === 'month')?.value ?? '??';
+  const day = parts.find(p => p.type === 'day')?.value ?? '??';
+  const hour = parts.find(p => p.type === 'hour')?.value ?? '??';
+  const minute = parts.find(p => p.type === 'minute')?.value ?? '??';
+
+  return `${month}月${day}日 ${hour}:${minute}`;
 }
