@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,14 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>
+        <footer className="border-t border-white/5 bg-pitch-dark/50 py-4 px-4 text-center">
+          <p className="text-white/25 text-[11px] leading-relaxed">
+            ⚠️ 本平台为纯虚拟模拟器，所有「货币」仅供娱乐，<strong className="text-white/35">无任何真实价值</strong>，不可兑换真金白银。
+            <Link href="/disclaimer" className="text-amber-300/50 hover:text-amber-300/80 underline underline-offset-2 ml-1">
+              查看完整免责声明 →
+            </Link>
+          </p>
+        </footer>
       </body>
     </html>
   );

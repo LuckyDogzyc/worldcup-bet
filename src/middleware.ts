@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   '/login',
   '/api/auth/login',
   '/api/auth/register',
+  '/disclaimer',
 ];
 
 const CRON_SECRET = process.env.CRON_SECRET || 'cron-secret-2026';

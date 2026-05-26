@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [agreedDisclaimer, setAgreedDisclaimer] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,7 +87,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (isRegister && !agreedDisclaimer)}
             className="w-full btn-gold py-3.5 text-base"
           >
             {loading ? '处理中...' : isRegister ? '注册账号' : '登录'}
@@ -103,6 +104,34 @@ export default function LoginPage() {
           >
             {isRegister ? '已有账号？点击登录' : '没有账号？点击注册'}
           </button>
+        </div>
+
+        {/* Disclaimer notice */}
+        <div className="mt-5 pt-4 border-t border-white/10">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2.5 mb-3">
+            <p className="text-amber-200/70 text-[11px] leading-relaxed text-center">
+              ⚠️ 本平台为<strong className="text-amber-200/90">纯虚拟模拟器</strong>，
+              所有「货币」仅供娱乐，<strong className="text-amber-200/90">无任何真实价值</strong>，
+              不涉及真实金钱交易、赌博或金融活动。
+            </p>
+          </div>
+          {isRegister && (
+            <label className="flex items-start gap-2 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={agreedDisclaimer}
+                onChange={(e) => setAgreedDisclaimer(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-amber-500/50 bg-white/10 text-amber-500 focus:ring-amber-500/50 accent-amber-500"
+              />
+              <span className="text-white/40 text-[11px] leading-relaxed group-hover:text-white/50">
+                我已阅读并同意
+                <a href="/disclaimer" target="_blank" className="text-amber-300/70 hover:text-amber-300 underline underline-offset-2 mx-0.5">
+                  《免责声明》
+                </a>
+                ，确认本平台为纯虚拟模拟器，不涉及真实金钱。
+              </span>
+            </label>
+          )}
         </div>
 
 
