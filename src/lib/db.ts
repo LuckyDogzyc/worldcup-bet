@@ -22,6 +22,8 @@ export function initDB(): Database.Database {
   db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
+  // Keep WAL bounded automatically; live deployments still checkpoint before DB backup/copy.
+  db.pragma('wal_autocheckpoint = 1000');
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS tournaments (

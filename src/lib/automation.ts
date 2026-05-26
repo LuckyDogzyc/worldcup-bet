@@ -254,6 +254,24 @@ async function syncSportsLeagueGames(league: SportsLeagueConfig, stats: SyncStat
   const slugs = Object.keys(parentToChildren);
   stats.eventsScanned += slugs.length;
 
+  // Some Polymarket league pages are available but currently expose no game slugs.
+  // Do not create empty tournaments in that case; if a previous cron created one,
+  // remove only the empty shell (no matches, no markets, no user data).
+  if (slugs.length === 0) {
+    const emptyTournament = db.prepare(`
+      SELECT t.id
+      FROM tournaments t
+      WHERE t.slug = ?
+        AND NOT EXISTS (SELECT 1 FROM matches m WHERE m.tournament_id = t.id)
+    `).get(league.tournamentSlug) as any;
+    if (emptyTournament) {
+      db.prepare('DELETE FROM tournaments WHERE id = ?').run(emptyTournament.id);
+      console.log(`[automation] ${league.webSlug}: 删除空赛事 ${league.tournamentSlug}`);
+    }
+    console.log(`[automation] ${league.webSlug}: 当前无 games，跳过建库`);
+    return;
+  }
+
   const existingTournament = db.prepare('SELECT id FROM tournaments WHERE slug = ?').get(league.tournamentSlug) as any;
   let tournamentId: number;
   if (existingTournament) {
