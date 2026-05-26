@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { getMarketLabel, formatTime } from '@/lib/utils';
+import TeamIdentity from '@/components/TeamIdentity';
 
 interface BalancePoint {
   time: string;
@@ -240,7 +241,11 @@ export default function PlayerPage({ params }: { params: Promise<{ id: string }>
               <div key={bet.id} className="rounded-xl bg-white/[0.03] border border-white/5 p-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <p className="text-white font-bold text-sm">{bet.match.home_team} vs {bet.match.away_team}</p>
+                    <div className="flex items-center gap-2 text-sm">
+                      <TeamIdentity name={bet.match.home_team} />
+                      <span className="text-gold/50 font-black">vs</span>
+                      <TeamIdentity name={bet.match.away_team} />
+                    </div>
                     <p className="text-white/30 text-[10px] mt-0.5">{bet.match.round_name || '比赛'} · {formatDate(bet.created_at)}</p>
                   </div>
                   <span className={'shrink-0 text-[11px] px-2 py-1 rounded-full border ' + statusClass(bet.status)}>{statusText(bet.status)}</span>
@@ -253,8 +258,11 @@ export default function PlayerPage({ params }: { params: Promise<{ id: string }>
                   <Detail label={bet.status === 'pending' ? '预计回报' : '实际回报'} value={'$' + bet.estimated_payout.toFixed(2)} strong={bet.status === 'won'} />
                 </div>
                 {bet.match.status === 'finished' && bet.match.result_home !== null && (
-                  <div className="mt-3 text-[11px] text-white/35 border-t border-white/5 pt-2">
-                    赛果：{bet.match.home_team} {bet.match.result_home} : {bet.match.result_away} {bet.match.away_team}
+                  <div className="mt-3 text-[11px] text-white/35 border-t border-white/5 pt-2 flex items-center gap-2 flex-wrap">
+                    <span>赛果：</span>
+                    <TeamIdentity name={bet.match.home_team} />
+                    <span>{bet.match.result_home} : {bet.match.result_away}</span>
+                    <TeamIdentity name={bet.match.away_team} />
                   </div>
                 )}
               </div>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { priceToOdds as calcOdds, getMarketLabel, formatTime } from '@/lib/utils';
+import { settlementBasisText } from '@/lib/teamVisuals';
+import TeamIdentity from './TeamIdentity';
 
 interface BetModalProps {
   matchInfo: { home_team: string; away_team: string; kickoff_time?: string };
@@ -79,17 +81,17 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
 
   const selectionHint = (() => {
     if (marketInfo.type === '1x2') {
-      if (option.label === '主胜') return '你选择的是：主场球队获胜';
-      if (option.label === '客胜') return '你选择的是：客场球队获胜';
-      if (option.label === '平局') return '你选择的是：双方打平';
+      if (option.label === '主胜') return '你选择的是：主场球队在常规90分钟+伤停补时内获胜';
+      if (option.label === '客胜') return '你选择的是：客场球队在常规90分钟+伤停补时内获胜';
+      if (option.label === '平局') return '你选择的是：常规90分钟+伤停补时后双方打平；即使加时或点球分出胜负，平局仍算赢';
     }
     if (marketInfo.type === 'spread') {
-      if (option.label.includes('-1.5')) return '让球 -1.5：该队必须赢 2 球或以上才算赢';
-      if (option.label.includes('+1.5')) return '受让 +1.5：该队最多输 1 球也算赢';
+      if (option.label.includes('-1.5')) return '让球 -1.5：只看常规90分钟+伤停补时，该队必须赢 2 球或以上才算赢';
+      if (option.label.includes('+1.5')) return '受让 +1.5：只看常规90分钟+伤停补时，该队最多输 1 球也算赢';
     }
     if (marketInfo.type === 'ou25') {
-      if (option.label.includes('大于')) return '大于2.5：双方总进球 ≥ 3 球算赢';
-      return '小于等于2.5：双方总进球 ≤ 2 球算赢';
+      if (option.label.includes('大于')) return '大于2.5：只看常规90分钟+伤停补时，双方总进球 ≥ 3 球算赢';
+      return '小于等于2.5：只看常规90分钟+伤停补时，双方总进球 ≤ 2 球算赢';
     }
     return '';
   })();
@@ -128,12 +130,12 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-3 rounded-lg bg-white/[0.03] border border-white/5 p-3">
                   <div className="text-right">
                     <span className="inline-block text-[10px] text-blue-200/75 bg-blue-500/10 border border-blue-400/20 rounded-full px-2 py-0.5 mb-1">主场</span>
-                    <p className="text-white font-bold text-sm">{matchInfo.home_team}</p>
+                    <TeamIdentity name={matchInfo.home_team} align="right" />
                   </div>
                   <span className="text-[10px] font-black text-gold/60 px-2">VS</span>
                   <div>
                     <span className="inline-block text-[10px] text-amber-200/75 bg-amber-500/10 border border-amber-400/20 rounded-full px-2 py-0.5 mb-1">客场</span>
-                    <p className="text-white font-bold text-sm">{matchInfo.away_team}</p>
+                    <TeamIdentity name={matchInfo.away_team} align="left" />
                   </div>
                 </div>
               )}
@@ -165,7 +167,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                   </div>
                 )}
                 <div className="text-xs text-white/30 pt-1 border-t border-white/10">
-                  💡 投 $1 → 赢了得 ${oddsDisplay} · 比赛结束后自动结算
+                  💡 投 $1 → 赢了得 ${oddsDisplay} · {settlementBasisText}
                 </div>
               </div>
 

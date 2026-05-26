@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { priceToOdds, formatTime as fmtTime, getMarketLabel } from '@/lib/utils';
+import TeamIdentity from '@/components/TeamIdentity';
 
 interface Bet {
   id: number;
@@ -161,9 +162,11 @@ export default function ProfileClient() {
               {/* Match info */}
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-white font-bold text-sm">
-                    {bet.match.home_team} vs {bet.match.away_team}
-                  </p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <TeamIdentity name={bet.match.home_team} />
+                    <span className="text-gold/50 font-black">vs</span>
+                    <TeamIdentity name={bet.match.away_team} />
+                  </div>
                   {bet.match.round_name && (
                     <p className="text-white/30 text-[10px]">{bet.match.round_name}</p>
                   )}

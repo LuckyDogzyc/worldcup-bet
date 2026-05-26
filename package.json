@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed": "npx tsx src/lib/seed.ts"
+    "seed": "npx tsx src/lib/seed.ts",
+    "check:team-visuals": "npx tsx scripts/check-team-visuals.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

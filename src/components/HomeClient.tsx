@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import BetModal from './BetModal';
+import TeamIdentity from './TeamIdentity';
 import { priceToOdds, oddsColor, formatTime, getMarketLabel } from '@/lib/utils';
+import { settlementBasisText } from '@/lib/teamVisuals';
 
 interface Tournament {
   id: number;
@@ -81,7 +83,8 @@ function RulesGuide() {
               <span className="text-xs font-bold text-gold/80 px-2 py-0.5 rounded bg-gold/10">胜负</span>
             </div>
             <div className="text-white/50 text-xs leading-relaxed">
-              猜比赛最终结果。<strong className="text-white/70">主胜</strong> = 主队赢球；<strong className="text-white/70">平局</strong> = 打平；<strong className="text-white/70">客胜</strong> = 客队赢球。
+              猜常规时间赛果。<strong className="text-white/70">主胜</strong> = 主队赢球；<strong className="text-white/70">平局</strong> = 90分钟加伤停补时后打平；<strong className="text-white/70">客胜</strong> = 客队赢球。
+              <br />决赛如果进入加时或点球，胜负盘仍按加时前的比分结算。
               <br />赔率 <strong className="text-white/70">2.50倍</strong> 表示投 $1 赢回 $2.50（净赚 $1.50）。
             </div>
           </div>
@@ -92,8 +95,9 @@ function RulesGuide() {
               <span className="text-xs font-bold text-blue-300/80 px-2 py-0.5 rounded bg-blue-500/10">让球</span>
             </div>
             <div className="text-white/50 text-xs leading-relaxed">
-              强队需要赢够指定球数才算胜出。
+              强队需要在常规90分钟加伤停补时内赢够指定球数才算胜出。
               <br />例如 <strong className="text-white/70">巴西 -1.5</strong>：巴西需赢 2 球或以上（如 3:1、2:0），买巴西才算赢。如果只赢 1 球（如 2:1）或打平/输球，买<strong className="text-white/70">对手 +1.5</strong> 才算赢。
+              <br />加时赛和点球大战进球不计入让球结算。
             </div>
           </div>
 
@@ -103,15 +107,16 @@ function RulesGuide() {
               <span className="text-xs font-bold text-amber-300/80 px-2 py-0.5 rounded bg-amber-500/10">大小球</span>
             </div>
             <div className="text-white/50 text-xs leading-relaxed">
-              猜双方总进球数是否超过 2.5 球。
+              猜双方常规90分钟加伤停补时内总进球数是否超过 2.5 球。
               <br /><strong className="text-white/70">大于 2.5</strong>：总进球 ≥ 3 球算赢（如 2:1、3:0、2:2）。
               <br /><strong className="text-white/70">小于 2.5</strong>：总进球 ≤ 2 球算赢（如 1:0、0:0、1:1）。
+              <br />加时赛和点球大战进球不计入大小球结算。
             </div>
           </div>
 
           {/* 通用规则 */}
           <div className="mt-2 pt-2 border-t border-white/5 text-white/30 text-[10px]">
-            💡 每个盘口每人只能投注一次。赔率随市场实时变动，以下注时赔率为准。
+            💡 每个盘口每人只能投注一次。{settlementBasisText} 赔率随市场实时变动，以下注时赔率为准。
           </div>
         </div>
       )}
@@ -123,9 +128,9 @@ function RulesGuide() {
 function InlineRule({ type }: { type: string }) {
   const [open, setOpen] = useState(false);
   const tips: Record<string, string> = {
-    '胜负': '主胜=左侧主场球队赢；平局=打平；客胜=右侧客场球队赢。',
-    '让球': '-1.5 表示该队必须赢 2 球或以上；+1.5 表示该队最多输 1 球也算赢。',
-    '大小2.5': '两队总进球 ≥3 是大于2.5；总进球 ≤2 是小于等于2.5。',
+    '胜负': '只看常规90分钟+伤停补时：主胜=左侧主场球队赢；平局=90分钟打平；客胜=右侧客场球队赢。加时/点球不计入。',
+    '让球': '只看常规90分钟+伤停补时：-1.5 表示该队必须赢 2 球或以上；+1.5 表示该队最多输 1 球也算赢。',
+    '大小2.5': '只看常规90分钟+伤停补时：两队总进球 ≥3 是大于2.5；总进球 ≤2 是小于等于2.5。',
   };
   const tip = tips[type];
   if (!tip) return null;
@@ -266,14 +271,14 @@ export default function HomeClient({ username, balance: initialBalance }: { user
             <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-2">
               <div className="text-right">
                 <span className="inline-flex items-center gap-1 text-[10px] text-blue-200/70 bg-blue-500/10 border border-blue-400/20 rounded-full px-2 py-0.5 mb-1">主场</span>
-                <p className="text-white font-bold text-sm sm:text-base">{match.home_team}</p>
+                <TeamIdentity name={match.home_team} align="right" size="md" />
               </div>
               <div className="text-center px-2">
                 <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-gold/15 text-gold/70 border border-gold/20">VS</span>
               </div>
               <div>
                 <span className="inline-flex items-center gap-1 text-[10px] text-amber-200/70 bg-amber-500/10 border border-amber-400/20 rounded-full px-2 py-0.5 mb-1">客场</span>
-                <p className="text-white font-bold text-sm sm:text-base">{match.away_team}</p>
+                <TeamIdentity name={match.away_team} align="left" size="md" />
               </div>
             </div>
           )}
@@ -339,14 +344,14 @@ export default function HomeClient({ username, balance: initialBalance }: { user
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className={`font-bold ${(match.result_home ?? 0) > (match.result_away ?? 0) ? 'text-gold' : 'text-white/70'}`}>
-                        {match.home_team}
+                      <span className={(match.result_home ?? 0) > (match.result_away ?? 0) ? 'text-gold' : 'text-white/70'}>
+                        <TeamIdentity name={match.home_team} align="left" />
                       </span>
                       <span className="text-white/90 font-black text-lg px-1.5 py-0.5 rounded bg-white/5">
                         {match.result_home ?? '-'} : {match.result_away ?? '-'}
                       </span>
-                      <span className={`font-bold ${(match.result_away ?? 0) > (match.result_home ?? 0) ? 'text-gold' : 'text-white/70'}`}>
-                        {match.away_team}
+                      <span className={(match.result_away ?? 0) > (match.result_home ?? 0) ? 'text-gold' : 'text-white/70'}>
+                        <TeamIdentity name={match.away_team} align="left" />
                       </span>
                     </div>
                     {match.result_home === match.result_away && match.result_home !== null && (
