@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { priceToOdds as calcOdds, getMarketLabel } from '@/lib/utils';
 
 interface BetModalProps {
-  matchInfo: { home_team: string; away_team: string };
+  matchInfo: { home_team: string; away_team: string; kickoff_time?: string };
   marketInfo: { type: string; description: string };
   option: { id: number; label: string; price: number };
   balance: number;
@@ -113,8 +113,14 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
                   <span className="text-white/50">赔率</span>
                   <span className="text-gold font-bold text-base">{oddsDisplay} 倍</span>
                 </div>
+                {matchInfo.kickoff_time && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/50">⏱ 开赛时间</span>
+                    <span className="text-white/70">{new Date(matchInfo.kickoff_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                  </div>
+                )}
                 <div className="text-xs text-white/40 pt-1 border-t border-white/10">
-                  💡 投 $1 → 赢了得 ${oddsDisplay}
+                  💡 投 $1 → 赢了得 ${oddsDisplay} · 比赛结束后自动结算
                 </div>
               </div>
 

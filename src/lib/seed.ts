@@ -34,7 +34,11 @@ const MATCHES: MatchSeed[] = [
   // === 欧冠决赛 2025 (已结束 - 巴黎圣日耳曼 5-0 国际米兰) ===
   { home_team: '巴黎圣日耳曼', away_team: '国际米兰', round_name: '决赛 · 慕尼黑', kickoff_time: '2025-05-31T21:00:00+02:00', status: 'finished', result_home: 5, result_away: 0, tournament_slug: 'ucl-final-2025' },
 
-  // === 欧冠决赛 2026 (May 30, Budapest) ===
+  // === 欧冠 2026 (半决赛已结束，决赛即将开始) ===
+  { home_team: '皇家马德里', away_team: '拜仁慕尼黑', round_name: '半决赛首回合', kickoff_time: '2026-04-28T21:00:00+02:00', status: 'finished', result_home: 2, result_away: 1, tournament_slug: 'ucl-final-2026' },
+  { home_team: '拜仁慕尼黑', away_team: '皇家马德里', round_name: '半决赛次回合', kickoff_time: '2026-05-05T21:00:00+02:00', status: 'finished', result_home: 1, result_away: 3, tournament_slug: 'ucl-final-2026' },
+  { home_team: '曼城', away_team: '巴塞罗那', round_name: '半决赛首回合', kickoff_time: '2026-04-29T21:00:00+02:00', status: 'finished', result_home: 3, result_away: 1, tournament_slug: 'ucl-final-2026' },
+  { home_team: '巴塞罗那', away_team: '曼城', round_name: '半决赛次回合', kickoff_time: '2026-05-06T21:00:00+02:00', status: 'finished', result_home: 2, result_away: 1, tournament_slug: 'ucl-final-2026' },
   { home_team: '皇家马德里', away_team: '曼城', round_name: '决赛 · 布达佩斯', kickoff_time: '2026-05-30T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'ucl-final-2026' },
 
   // === 法网决赛 (June 6-7, Paris) ===
@@ -47,14 +51,14 @@ const MATCHES: MatchSeed[] = [
   { home_team: '凯尔特人', away_team: '雷霆', round_name: 'G3', kickoff_time: '2026-06-11T20:30:00-04:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'nba-finals-2026' },
 
   // === 2026 FIFA 世界杯小组赛 ===
-  { home_team: '墨西哥', away_team: '待定', round_name: '开幕战 · A组', kickoff_time: '2026-06-11T18:00:00-06:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
-  { home_team: '美国', away_team: '待定', round_name: 'C组 · 第1轮', kickoff_time: '2026-06-12T19:30:00-07:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
-  { home_team: '加拿大', away_team: '待定', round_name: 'B组 · 第1轮', kickoff_time: '2026-06-12T19:30:00-04:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
-  { home_team: '阿根廷', away_team: '待定', round_name: 'D组 · 第1轮', kickoff_time: '2026-06-13T19:30:00-05:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
-  { home_team: '巴西', away_team: '待定', round_name: 'E组 · 第1轮', kickoff_time: '2026-06-14T15:00:00-03:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
-  { home_team: '法国', away_team: '待定', round_name: 'F组 · 第1轮', kickoff_time: '2026-06-14T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
-  { home_team: '英格兰', away_team: '待定', round_name: 'G组 · 第1轮', kickoff_time: '2026-06-15T17:00:00+01:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
-  { home_team: '德国', away_team: '待定', round_name: 'H组 · 第1轮', kickoff_time: '2026-06-15T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '墨西哥', away_team: '待抽签', round_name: '开幕战 · A组', kickoff_time: '2026-06-11T18:00:00-06:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '加拿大', away_team: '待抽签', round_name: 'B组 · 第1轮', kickoff_time: '2026-06-12T19:30:00-04:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '美国', away_team: '待抽签', round_name: 'C组 · 第1轮', kickoff_time: '2026-06-12T19:30:00-07:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '阿根廷', away_team: '待抽签', round_name: 'D组 · 第1轮', kickoff_time: '2026-06-13T19:30:00-05:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '巴西', away_team: '待抽签', round_name: 'E组 · 第1轮', kickoff_time: '2026-06-14T15:00:00-03:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '法国', away_team: '待抽签', round_name: 'F组 · 第1轮', kickoff_time: '2026-06-14T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '英格兰', away_team: '待抽签', round_name: 'G组 · 第1轮', kickoff_time: '2026-06-15T17:00:00+01:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
+  { home_team: '德国', away_team: '待抽签', round_name: 'H组 · 第1轮', kickoff_time: '2026-06-15T21:00:00+02:00', status: 'upcoming', result_home: null, result_away: null, tournament_slug: 'worldcup-2026' },
 ];
 
 interface OptionDef { label: string; price: number }
@@ -130,35 +134,35 @@ const CUSTOM_PRICES: Record<string, Record<string, OptionDef[]>> = {
       { label: '客胜', price: 0.40 },
     ],
   },
-  '阿根廷 vs 待定': {
+  '阿根廷 vs 待抽签': {
     '1x2': [
       { label: '主胜', price: 0.65 },
       { label: '平局', price: 0.20 },
       { label: '客胜', price: 0.15 },
     ],
   },
-  '巴西 vs 待定': {
+  '巴西 vs 待抽签': {
     '1x2': [
       { label: '主胜', price: 0.60 },
       { label: '平局', price: 0.22 },
       { label: '客胜', price: 0.18 },
     ],
   },
-  '法国 vs 待定': {
+  '法国 vs 待抽签': {
     '1x2': [
       { label: '主胜', price: 0.58 },
       { label: '平局', price: 0.22 },
       { label: '客胜', price: 0.20 },
     ],
   },
-  '英格兰 vs 待定': {
+  '英格兰 vs 待抽签': {
     '1x2': [
       { label: '主胜', price: 0.52 },
       { label: '平局', price: 0.25 },
       { label: '客胜', price: 0.23 },
     ],
   },
-  '德国 vs 待定': {
+  '德国 vs 待抽签': {
     '1x2': [
       { label: '主胜', price: 0.50 },
       { label: '平局', price: 0.25 },

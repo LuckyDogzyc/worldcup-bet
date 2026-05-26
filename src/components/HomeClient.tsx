@@ -234,15 +234,33 @@ export default function HomeClient({ username, balance: initialBalance }: { user
     );
   };
 
+  const getMarketTooltip = (type: string) => {
+    switch (type) {
+      case '1x2': return '预测比赛结果：主队赢、平局、或客队赢';
+      case 'ou25': return '预测总进球数是否超过 2.5（例如 2:1 = 3球 = 大于 2.5）';
+      case 'cs': return '预测比赛的精确比分';
+      default: return '';
+    }
+  };
+
   const renderMarket = (match: Match, market: Market) => {
     const hasBet = betMarketIds.has(market.id);
+    const tooltip = getMarketTooltip(market.market_type);
 
     return (
       <div key={market.id} className="bg-white/[0.03] rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 group relative">
             <span className="text-sm">{getMarketEmoji(market.market_type)}</span>
             <span className="text-xs font-medium text-white/60">{getMarketLabel(market.market_type)}</span>
+            {tooltip && (
+              <>
+                <span className="text-white/30 cursor-help text-xs" title={tooltip}>ⓘ</span>
+                <div className="absolute left-0 top-full mt-1 hidden group-hover:block z-10 w-56 px-3 py-2 rounded-lg bg-gray-900 border border-white/20 text-xs text-white/80 shadow-xl">
+                  {tooltip}
+                </div>
+              </>
+            )}
           </div>
           {hasBet ? (
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/20 text-gold">已下注 ✓</span>
@@ -269,7 +287,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
             ))}
           </div>
         ) : (
-          <div className={`grid gap-1.5 ${market.options.length <= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className={`grid gap-1.5 ${market.options.length === 2 ? 'grid-cols-2' : market.options.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {market.options.map(opt => (
               <button
                 key={opt.id}
@@ -362,7 +380,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
 
       {modal && (
         <BetModal
-          matchInfo={{ home_team: modal.match.home_team, away_team: modal.match.away_team }}
+          matchInfo={{ home_team: modal.match.home_team, away_team: modal.match.away_team, kickoff_time: modal.match.kickoff_time }}
           marketInfo={{ type: modal.market.market_type, description: modal.market.description }}
           option={modal.option}
           balance={balance}
