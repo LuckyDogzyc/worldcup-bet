@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { priceToOdds, formatTime as fmtTime, getMarketLabel } from '@/lib/utils';
 import TeamIdentity from '@/components/TeamIdentity';
+import { formatMarketOptionLabel } from '@/lib/marketDisplay';
 
 interface Bet {
   id: number;
@@ -151,6 +152,7 @@ export default function ProfileClient() {
         {activeBets.map((bet) => {
           const isWon = bet.status === 'won';
           const isLost = bet.status === 'lost';
+          const optionDisplay = formatMarketOptionLabel(bet.market.type, bet.option.label);
 
           return (
             <div
@@ -192,7 +194,7 @@ export default function ProfileClient() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/40">选择</span>
-                  <span className="text-white font-medium">{bet.option.label}</span>
+                  <span className="text-white font-medium text-right">{optionDisplay.accessible}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/40">投入</span>

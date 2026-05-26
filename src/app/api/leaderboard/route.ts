@@ -16,10 +16,10 @@ export async function GET() {
     }>;
 
     const leaderboard = users.map((user) => {
-      // Calculate unsettled bet values (shares of pending bets)
+      // 未结算投注按投入金额计算（不算假设胜利资金）
       const unsettledRow = db
         .prepare(
-          `SELECT COALESCE(SUM(b.shares), 0) as total_unsettled
+          `SELECT COALESCE(SUM(b.amount), 0) as total_unsettled
            FROM bets b
            JOIN market_options mo ON b.market_option_id = mo.id
            JOIN markets m ON mo.market_id = m.id

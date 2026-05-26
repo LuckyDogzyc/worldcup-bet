@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { priceToOdds as calcOdds, getMarketLabel, formatTime } from '@/lib/utils';
 import { settlementBasisText } from '@/lib/teamVisuals';
+import { formatMarketOptionLabel, getSpreadOptionHint } from '@/lib/marketDisplay';
 import TeamIdentity from './TeamIdentity';
 
 interface BetModalProps {
@@ -70,10 +71,12 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
 
   const oddsDisplay = calcOdds(option.price);
 
+  const displayOption = formatMarketOptionLabel(marketInfo.type, option.label);
+
   // 冠军盘口选择描述
   const selectionLabel = isOutright
     ? `${matchInfo.home_team} ${option.label === '是' ? '赢' : '不赢'}`
-    : option.label;
+    : displayOption.accessible;
 
   const matchLabel = isOutright
     ? matchInfo.home_team
@@ -85,10 +88,7 @@ export default function BetModal({ matchInfo, marketInfo, option, balance, onClo
       if (option.label === '客胜') return '你选择的是：客场球队在常规90分钟+伤停补时内获胜';
       if (option.label === '平局') return '你选择的是：常规90分钟+伤停补时后双方打平；即使加时或点球分出胜负，平局仍算赢';
     }
-    if (marketInfo.type === 'spread') {
-      if (option.label.includes('-1.5')) return '让球 -1.5：只看常规90分钟+伤停补时，该队必须赢 2 球或以上才算赢';
-      if (option.label.includes('+1.5')) return '受让 +1.5：只看常规90分钟+伤停补时，该队最多输 1 球也算赢';
-    }
+    if (marketInfo.type === 'spread') return getSpreadOptionHint(option.label);
     if (marketInfo.type === 'ou25') {
       if (option.label.includes('大于')) return '大于2.5：只看常规90分钟+伤停补时，双方总进球 ≥ 3 球算赢';
       return '小于等于2.5：只看常规90分钟+伤停补时，双方总进球 ≤ 2 球算赢';

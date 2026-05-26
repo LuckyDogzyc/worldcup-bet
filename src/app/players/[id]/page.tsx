@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { getMarketLabel, formatTime } from '@/lib/utils';
 import TeamIdentity from '@/components/TeamIdentity';
+import { formatMarketOptionLabel } from '@/lib/marketDisplay';
 
 interface BalancePoint {
   time: string;
@@ -221,8 +222,8 @@ export default function PlayerPage({ params }: { params: Promise<{ id: string }>
 
       <div className="glass-card p-5 mb-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white font-bold flex items-center gap-2"><span>📈</span>资金变化曲线</h2>
-          <span className="text-white/30 text-xs">基于下注与派奖流水</span>
+          <h2 className="text-white font-bold flex items-center gap-2"><span>📈</span>总资产变化曲线</h2>
+          <span className="text-white/30 text-xs">总资产 = 余额 + 未结算投入</span>
         </div>
         <BalanceChart points={data.balance_history} />
       </div>
@@ -237,7 +238,9 @@ export default function PlayerPage({ params }: { params: Promise<{ id: string }>
           <div className="text-center py-10 text-white/35">这个玩家还没有下注记录</div>
         ) : (
           <div className="space-y-3">
-            {data.bets.map((bet) => (
+            {data.bets.map((bet) => {
+              const optionDisplay = formatMarketOptionLabel(bet.market_type, bet.option_label);
+              return (
               <div key={bet.id} className="rounded-xl bg-white/[0.03] border border-white/5 p-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
@@ -252,7 +255,7 @@ export default function PlayerPage({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
                   <Detail label="玩法" value={getMarketLabel(bet.market_type)} />
-                  <Detail label="选择" value={bet.option_label} strong />
+                  <Detail label="选择" value={optionDisplay.accessible} strong />
                   <Detail label="投入" value={'$' + bet.amount.toFixed(2)} />
                   <Detail label="赔率" value={bet.odds.toFixed(2) + '倍'} />
                   <Detail label={bet.status === 'pending' ? '预计回报' : '实际回报'} value={'$' + bet.estimated_payout.toFixed(2)} strong={bet.status === 'won'} />
@@ -266,7 +269,8 @@ export default function PlayerPage({ params }: { params: Promise<{ id: string }>
                   </div>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

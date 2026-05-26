@@ -28,8 +28,9 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ error: '玩家不存在' }, { status: 404 });
     }
 
+    // 未结算投注按投入金额计算（不算假设胜利资金）
     const unsettledRow = db.prepare(
-      'SELECT COALESCE(SUM(b.shares), 0) AS total_unsettled ' +
+      'SELECT COALESCE(SUM(b.amount), 0) AS total_unsettled ' +
       'FROM bets b ' +
       'JOIN market_options mo ON b.market_option_id = mo.id ' +
       'JOIN markets m ON mo.market_id = m.id ' +
@@ -100,23 +101,85 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       created_at: string;
     }>;
 
-    let runningBalance = 100;
-    const balanceHistory = [
-      {
-        time: user.created_at,
-        balance: round2(runningBalance),
-        change: 0,
-        label: '初始虚拟资金',
-      },
+    // 构建资金变化曲线：追踪总资产（余额 + 未结算投入）
+    // 需要按时间顺序追踪每笔交易后的余额和未结算投入
+    const allBets = db.prepare(
+      'SELECT b.amount, b.created_at, b.id, m.settled, m.winning_option, mo.label AS option_label ' +
+      'FROM bets b ' +
+      'JOIN market_options mo ON b.market_option_id = mo.id ' +
+      'JOIN markets m ON mo.market_id = m.id ' +
+      'WHERE b.user_id = ? ' +
+      'ORDER BY b.created_at ASC, b.id ASC'
+    ).all(playerId) as Array<{
+      amount: number; created_at: string; id: number;
+      settled: number; winning_option: string | null; option_label: string;
+    }>;
+
+    // 合并交易和下注事件，按时间排序
+    interface TimelineEvent {
+      time: string;
+      type: 'init' | 'bet' | 'payout';
+      amount: number; // 对余额的影响
+      betAmount?: number; // 下注金额
+      betSettled?: boolean;
+      label: string;
+    }
+
+    const events: TimelineEvent[] = [
+      { time: user.created_at, type: 'init', amount: 0, label: '初始虚拟资金' },
     ];
 
     for (const tx of transactions) {
-      runningBalance += tx.amount;
-      balanceHistory.push({
+      events.push({
         time: tx.created_at,
-        balance: round2(runningBalance),
-        change: round2(tx.amount),
-        label: tx.type === 'bet' ? '下注' : (tx.type === 'payout' ? '派奖' : tx.type),
+        type: tx.type === 'bet' ? 'bet' : 'payout',
+        amount: tx.amount,
+        label: tx.type === 'bet' ? '下注' : '派奖',
+      });
+    }
+
+    // 按时间排序
+    events.sort((a, b) => a.time.localeCompare(b.time));
+
+    let runningBalance = 100;
+    let unsettledInvested = 0;
+    const balanceHistory: Array<{ time: string; balance: number; change: number; label: string }> = [];
+
+    // 建立下注ID到下注信息的映射，用于追踪未结算投入
+    const betMap = new Map<number, { amount: number; settled: boolean }>();
+    for (const bet of allBets) {
+      betMap.set(bet.id, { amount: bet.amount, settled: bet.settled === 1 });
+    }
+
+    for (const evt of events) {
+      runningBalance += evt.amount;
+
+      if (evt.type === 'bet') {
+        // 下注：增加未结算投入
+        unsettledInvested += Math.abs(evt.amount);
+      } else if (evt.type === 'payout') {
+        // 派奖：减少对应的未结算投入（找到对应的已结算下注金额）
+        // payout 是正数（净赚部分 + 本金返还），需要从 unsettled 中扣除本金
+        // 派奖金额 = 净赚，但余额变化 = 净赚，而之前下注时余额已扣除本金
+        // 实际上 payout 交易的 amount 就是 shares（赢时）或 0（输时）
+        // 下注时 unsettledInvested += amount，结算时需要减去该笔 amount
+        // 简化处理：按时间顺序，每个 payout 减去对应 bet 的 amount
+        // 通过 ref_id 找到对应的 bet
+        const payoutTx = transactions.find(t => t.type === 'payout' && t.created_at === evt.time);
+        if (payoutTx?.ref_id) {
+          const betInfo = betMap.get(payoutTx.ref_id);
+          if (betInfo) {
+            unsettledInvested -= betInfo.amount;
+          }
+        }
+      }
+
+      const totalAssets = runningBalance + unsettledInvested;
+      balanceHistory.push({
+        time: evt.time,
+        balance: round2(totalAssets),
+        change: round2(evt.amount),
+        label: evt.label,
       });
     }
 

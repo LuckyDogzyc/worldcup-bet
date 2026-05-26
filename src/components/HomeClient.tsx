@@ -5,6 +5,7 @@ import BetModal from './BetModal';
 import TeamIdentity from './TeamIdentity';
 import { priceToOdds, oddsColor, formatTime, getMarketLabel } from '@/lib/utils';
 import { settlementBasisText } from '@/lib/teamVisuals';
+import { formatMarketOptionLabel } from '@/lib/marketDisplay';
 
 interface Tournament {
   id: number;
@@ -95,8 +96,9 @@ function RulesGuide() {
               <span className="text-xs font-bold text-blue-300/80 px-2 py-0.5 rounded bg-blue-500/10">让球</span>
             </div>
             <div className="text-white/50 text-xs leading-relaxed">
-              强队需要在常规90分钟加伤停补时内赢够指定球数才算胜出。
-              <br />例如 <strong className="text-white/70">巴西 -1.5</strong>：巴西需赢 2 球或以上（如 3:1、2:0），买巴西才算赢。如果只赢 1 球（如 2:1）或打平/输球，买<strong className="text-white/70">对手 +1.5</strong> 才算赢。
+              强队需要在常规90分钟加伤停补时内赢够球数才算胜出。
+              <br />例：如果按钮写着 <strong className="text-white/70">巴西需赢2球以上</strong>，巴西 2:0、3:1 才算赢；只赢 1 球、打平或输球都不算赢。
+              <br />如果按钮写着 <strong className="text-white/70">对手不输2球就赢</strong>，对手赢球、打平、或只输 1 球都算赢。
               <br />加时赛和点球大战进球不计入让球结算。
             </div>
           </div>
@@ -129,7 +131,7 @@ function InlineRule({ type }: { type: string }) {
   const [open, setOpen] = useState(false);
   const tips: Record<string, string> = {
     '胜负': '只看常规90分钟+伤停补时：主胜=左侧主场球队赢；平局=90分钟打平；客胜=右侧客场球队赢。加时/点球不计入。',
-    '让球': '只看常规90分钟+伤停补时：-1.5 表示该队必须赢 2 球或以上；+1.5 表示该队最多输 1 球也算赢。',
+    '让球': '只看常规90分钟+伤停补时：一边是“需赢2球以上”，另一边是“不输2球就赢”。按按钮文字判断，不用记数字符号。',
     '大小2.5': '只看常规90分钟+伤停补时：两队总进球 ≥3 是大于2.5；总进球 ≤2 是小于等于2.5。',
   };
   const tip = tips[type];
@@ -308,14 +310,17 @@ export default function HomeClient({ username, balance: initialBalance }: { user
         <div className={`grid ${cols} gap-1.5`}>
           {market.options.map(opt => {
             const odds = priceToOdds(opt.price);
+            const display = formatMarketOptionLabel(market.market_type, opt.label);
             return (
               <button
                 key={opt.id}
                 onClick={() => !hasBet && setModal({ match, market, option: opt })}
                 disabled={hasBet}
+                aria-label={`${display.accessible} ${odds}倍`}
                 className={`btn-price py-1.5 px-2 ${hasBet ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="text-[11px] text-white/50 leading-tight">{opt.label}</div>
+                <div className="text-[11px] text-white/50 leading-tight">{display.primary}</div>
+                {display.secondary && <div className="text-[9px] text-white/35 leading-tight mt-0.5">{display.secondary}</div>}
                 <div className={`text-sm font-bold ${oddsColor(opt.price)}`}>{odds}</div>
               </button>
             );
