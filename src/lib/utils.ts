@@ -26,6 +26,8 @@ export function getMarketLabel(marketType: string): string {
   switch (marketType) {
     case '1x2':
       return '胜负';
+    case 'spread':
+      return '让球';
     case 'ou25':
       return '大小2.5球';
     case 'cs':
@@ -73,14 +75,13 @@ export function getStatusLabel(status: string): string {
 
 /**
  * Returns a Tailwind text-color class based on the API price.
- * Higher price → lower odds (favorite) → green.
- * Lower price → higher odds (underdog) → red.
+ * User preference: probabilities/odds should use green tones, never red.
  */
 export function oddsColor(price: number): string {
   if (price <= 0) return 'text-gray-400';
-  if (price >= 0.6) return 'text-green-400';
-  if (price >= 0.35) return 'text-yellow-400';
-  return 'text-red-400';
+  if (price >= 0.6) return 'text-green-300';
+  if (price >= 0.35) return 'text-emerald-300';
+  return 'text-lime-300';
 }
 
 /**

@@ -13,6 +13,22 @@
 import { getDb } from './db';
 
 const GAMMA_API = 'https://gamma-api.polymarket.com';
+const POLYMARKET_WEB = 'https://polymarket.com';
+
+interface SportsLeagueConfig {
+  webSlug: string;
+  tournamentName: string;
+  tournamentSlug: string;
+  icon: string;
+  sport: string;
+  sortOrder: number;
+}
+
+const SPORTS_LEAGUES: SportsLeagueConfig[] = [
+  { webSlug: 'fifa-world-cup', tournamentName: '2026 FIFA 世界杯', tournamentSlug: 'worldcup-2026', icon: '⚽', sport: 'football', sortOrder: 1 },
+  { webSlug: 'ucl', tournamentName: '欧冠 2026', tournamentSlug: 'ucl-2026', icon: '🏅', sport: 'football', sortOrder: 2 },
+  { webSlug: 'nba', tournamentName: 'NBA 2025-26', tournamentSlug: 'nba-2026', icon: '🏀', sport: 'basketball', sortOrder: 3 },
+];
 
 // ─── 赛事识别规则 ──────────────────────────────────────────────────────
 
@@ -75,6 +91,14 @@ const NAME_ZH: Record<string, string> = {
   'Saudi Arabia': '沙特', 'Ecuador': '厄瓜多尔', 'Paraguay': '巴拉圭',
   'New Zealand': '新西兰', 'Tunisia': '突尼斯', 'Senegal': '塞内加尔',
   'South Africa': '南非', 'Uzbekistan': '乌兹别克斯坦', 'Jordan': '约旦',
+  'Korea Republic': '韩国', 'Czechia': '捷克', 'Czech Republic': '捷克',
+  'Bosnia-Herzegovina': '波黑', 'Bosnia and Herzegovina': '波黑', 'Qatar': '卡塔尔',
+  'Haiti': '海地', 'Scotland': '苏格兰', 'Turkey': '土耳其', 'Turkiye': '土耳其',
+  'Ivory Coast': '科特迪瓦', "Côte d'Ivoire": '科特迪瓦', 'Cape Verde': '佛得角', 'Cabo Verde': '佛得角',
+  'Curacao': '库拉索', 'Curaçao': '库拉索',
+  'Sweden': '瑞典', 'Egypt': '埃及', 'Iraq': '伊拉克', 'Algeria': '阿尔及利亚',
+  'Austria': '奥地利', 'DR Congo': '刚果（金）', 'Congo DR': '刚果（金）',
+  'Ghana': '加纳', 'Panama': '巴拿马', 'Costa Rica': '哥斯达黎加',
   'Real Madrid': '皇家马德里', 'Arsenal': '阿森纳', 'Barcelona': '巴塞罗那',
   'Manchester City': '曼城', 'Bayern Munich': '拜仁慕尼黑', 'Inter Milan': '国际米兰',
   'Paris Saint-Germain': '巴黎圣日耳曼', 'PSG': '巴黎圣日耳曼',
@@ -160,6 +184,7 @@ export async function runAllAutomation(_apiKey?: string): Promise<SyncStats> {
   };
 
   try {
+    await syncPolymarketSportsGames(stats);
     await syncUpcomingEvents(stats);
     await updateOdds(stats);
     await autoSettle(stats);
@@ -170,6 +195,296 @@ export async function runAllAutomation(_apiKey?: string): Promise<SyncStats> {
 
   console.log(`[automation] 完成: 扫描${stats.eventsScanned}事件 / 新建${stats.tournamentsCreated}赛事/${stats.matchesCreated}比赛 / 更新${stats.oddsUpdated}赔率 / 结算${stats.settled}场`);
   return stats;
+}
+
+
+// ─── Polymarket Sports Games 页面同步 ─────────────────────────────────────
+
+function getQueryData(pageData: any, queryKey: unknown[]): any | null {
+  const queries = pageData?.props?.pageProps?.dehydratedState?.queries
+    || pageData?.pageProps?.dehydratedState?.queries
+    || [];
+  const wanted = JSON.stringify(queryKey);
+  const hit = queries.find((q: any) => JSON.stringify(q.queryKey) === wanted);
+  return hit?.state?.data ?? null;
+}
+
+function extractNextData(html: string): any {
+  const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+  if (!match) throw new Error('Polymarket 页面缺少 __NEXT_DATA__');
+  return JSON.parse(match[1]);
+}
+
+async function fetchJson(url: string): Promise<any> {
+  const resp = await fetch(url, {
+    headers: { 'user-agent': 'Mozilla/5.0 Hermes sports sync' },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${url}`);
+  return resp.json();
+}
+
+async function fetchText(url: string): Promise<string> {
+  const resp = await fetch(url, {
+    headers: { 'user-agent': 'Mozilla/5.0 Hermes sports sync' },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${url}`);
+  return resp.text();
+}
+
+async function syncPolymarketSportsGames(stats: SyncStats): Promise<void> {
+  console.log('[automation] 步骤0: 同步 Polymarket Sports Games 页面...');
+  for (const league of SPORTS_LEAGUES) {
+    try {
+      await syncSportsLeagueGames(league, stats);
+    } catch (err) {
+      stats.errors.push(`Sports Games 同步失败(${league.webSlug}): ${String(err)}`);
+    }
+  }
+}
+
+async function syncSportsLeagueGames(league: SportsLeagueConfig, stats: SyncStats): Promise<void> {
+  const db = getDb();
+  const pageUrl = `${POLYMARKET_WEB}/zh/sports/${league.webSlug}/games`;
+  const html = await fetchText(pageUrl);
+  const pageData = extractNextData(html);
+  const buildId = pageData.buildId;
+  const parentToChildren = getQueryData(pageData, ['parentToChildEventIds']) || {};
+  const slugs = Object.keys(parentToChildren);
+  stats.eventsScanned += slugs.length;
+
+  const existingTournament = db.prepare('SELECT id FROM tournaments WHERE slug = ?').get(league.tournamentSlug) as any;
+  let tournamentId: number;
+  if (existingTournament) {
+    tournamentId = existingTournament.id;
+    db.prepare('UPDATE tournaments SET name = ?, icon = ?, sport = ?, sort_order = ? WHERE id = ?')
+      .run(league.tournamentName, league.icon, league.sport, league.sortOrder, tournamentId);
+  } else {
+    const result = db.prepare(
+      `INSERT INTO tournaments (name, slug, icon, sport, status, sort_order)
+       VALUES (?, ?, ?, ?, 'upcoming', ?)`
+    ).run(league.tournamentName, league.tournamentSlug, league.icon, league.sport, league.sortOrder);
+    tournamentId = result.lastInsertRowid as number;
+    stats.tournamentsCreated++;
+  }
+
+  const syncedMatchIds: number[] = [];
+  for (const eventSlug of slugs) {
+    try {
+      const detailUrl = `${POLYMARKET_WEB}/_next/data/${buildId}/zh/sports/${league.webSlug}/${eventSlug}.json?locale=zh&league=${league.webSlug}&slug=${eventSlug}`;
+      const detail = await fetchJson(detailUrl);
+      const event = getQueryData(detail, ['/api/event/slug', eventSlug]);
+      if (!event) continue;
+      const matchId = syncSportsGameEvent(db, tournamentId, league, event, stats);
+      if (matchId) syncedMatchIds.push(matchId);
+    } catch (err) {
+      stats.errors.push(`Sports Game 详情失败(${eventSlug}): ${String(err)}`);
+    }
+  }
+
+  // 清理该联赛旧的「对阵盘」占位比赛；保留冠军盘/已有投注的比赛。
+  if (syncedMatchIds.length > 0) {
+    const stale = db.prepare(`
+      SELECT m.id
+      FROM matches m
+      WHERE m.tournament_id = ?
+        AND m.status = 'upcoming'
+        AND m.away_team != '其他'
+        AND m.id NOT IN (${syncedMatchIds.map(() => '?').join(',')})
+        AND NOT EXISTS (
+          SELECT 1 FROM bets b
+          JOIN market_options mo ON mo.id = b.market_option_id
+          JOIN markets mk ON mk.id = mo.market_id
+          WHERE mk.match_id = m.id
+        )
+    `).all(tournamentId, ...syncedMatchIds) as any[];
+
+    const deleteOptions = db.prepare(`DELETE FROM market_options WHERE market_id IN (SELECT id FROM markets WHERE match_id = ?)`);
+    const deleteMarkets = db.prepare(`DELETE FROM markets WHERE match_id = ?`);
+    const deleteMatch = db.prepare(`DELETE FROM matches WHERE id = ?`);
+    const tx = db.transaction((rows: any[]) => {
+      for (const row of rows) {
+        deleteOptions.run(row.id);
+        deleteMarkets.run(row.id);
+        deleteMatch.run(row.id);
+      }
+    });
+    tx(stale);
+    if (stale.length > 0) console.log(`[automation] ${league.webSlug}: 清理旧对阵 ${stale.length} 场`);
+  }
+
+  console.log(`[automation] ${league.webSlug}: 同步 ${syncedMatchIds.length}/${slugs.length} 场 games`);
+}
+
+function syncSportsGameEvent(db: any, tournamentId: number, league: SportsLeagueConfig, event: any, stats: SyncStats): number | null {
+  const title = String(event.title || '');
+  const markets = Array.isArray(event.markets) ? event.markets : [];
+  const teams = extractSportsGameTeams(event, markets);
+  if (!teams) return null;
+
+  const { homeEn, awayEn, home, away } = teams;
+  const eventSlug = String(event.slug || event.ticker || `${homeEn}-${awayEn}`).trim();
+  const kickoff = String(event.endDate || event.eventDate || event.startDate || new Date().toISOString());
+  const roundName = `${league.tournamentName} · Games`;
+
+  const existingBySource = db.prepare(`
+    SELECT m.id FROM matches m
+    JOIN markets mk ON mk.match_id = m.id
+    WHERE mk.description LIKE ?
+    LIMIT 1
+  `).get(`pmgame:${eventSlug}:%`) as any;
+
+  let matchId: number;
+  if (existingBySource) {
+    matchId = existingBySource.id;
+    db.prepare(`UPDATE matches SET tournament_id = ?, home_team = ?, away_team = ?, round_name = ?, kickoff_time = ?, status = 'upcoming' WHERE id = ?`)
+      .run(tournamentId, home, away, roundName, kickoff, matchId);
+    stats.matchesUpdated++;
+  } else {
+    const result = db.prepare(
+      `INSERT INTO matches (tournament_id, home_team, away_team, round_name, kickoff_time, status)
+       VALUES (?, ?, ?, ?, ?, 'upcoming')`
+    ).run(tournamentId, home, away, roundName, kickoff);
+    matchId = result.lastInsertRowid as number;
+    stats.matchesCreated++;
+  }
+
+  const moneyline = findMoneylineMarkets(markets, homeEn, awayEn);
+  if (moneyline) {
+    upsertLocalMarket(db, matchId, '1x2', `pmgame:${eventSlug}:1x2:${moneyline.home.id},${moneyline.draw.id},${moneyline.away.id}`, [
+      { label: '主胜', price: moneyline.home.yes, sort: 0 },
+      { label: '平局', price: moneyline.draw.yes, sort: 1 },
+      { label: '客胜', price: moneyline.away.yes, sort: 2 },
+    ], stats);
+  }
+
+  const spread = findSpreadMarket(markets, homeEn);
+  if (spread) {
+    upsertLocalMarket(db, matchId, 'spread', `pmgame:${eventSlug}:spread:${spread.id}`, [
+      { label: `${home} -1.5`, price: spread.yes, sort: 0 },
+      { label: `${away} +1.5`, price: spread.no, sort: 1 },
+    ], stats);
+  }
+
+  const total = findTotal25Market(markets);
+  if (total) {
+    upsertLocalMarket(db, matchId, 'ou25', `pmgame:${eventSlug}:ou25:${total.id}`, [
+      { label: '大于 2.5 球', price: total.yes, sort: 0 },
+      { label: '小于等于 2.5 球', price: total.no, sort: 1 },
+    ], stats);
+  }
+
+  return matchId;
+}
+
+function extractSportsGameTeams(event: any, markets: any[]): { homeEn: string; awayEn: string; home: string; away: string } | null {
+  const drawQuestion = markets
+    .map(m => String(m?.question || ''))
+    .find(q => /^Will .+ vs\. .+ end in a draw\?/i.test(q));
+  const drawMatch = drawQuestion?.match(/^Will (.+?) vs\. (.+?) end in a draw\?/i);
+
+  let homeEn = drawMatch?.[1]?.trim() || '';
+  let awayEn = drawMatch?.[2]?.trim() || '';
+  if (!homeEn || !awayEn) {
+    const title = String(event.title || '');
+    const titleParts = title.split(/\s*vs\.?\s*/i).map(part => part.trim()).filter(Boolean);
+    if (titleParts.length >= 2) {
+      homeEn = titleParts[0];
+      awayEn = titleParts[1];
+    }
+  }
+  if (!homeEn || !awayEn) return null;
+
+  const titleParts = String(event.title || '')
+    .split(/\s*vs\.?\s*/i)
+    .map(part => part.trim())
+    .filter(Boolean);
+  const titleLooksLocalized = titleParts.length >= 2 && /[\u4e00-\u9fff]/.test(titleParts.join(''));
+
+  return {
+    homeEn,
+    awayEn,
+    home: titleLooksLocalized ? titleParts[0] : toZhName(homeEn),
+    away: titleLooksLocalized ? titleParts[1] : toZhName(awayEn),
+  };
+}
+
+function marketPrices(market: any): { yes: number; no: number } {
+  const [yes, no] = parseOutcomePrices(market?.outcomePrices);
+  return { yes, no };
+}
+
+function normalizedMarketTitle(market: any): string {
+  return String(market?.groupItemTitle || market?.question || '').toLowerCase();
+}
+
+function findMoneylineMarkets(markets: any[], homeEn: string, awayEn: string): null | { home: any; draw: any; away: any } {
+  const homeLower = homeEn.toLowerCase();
+  const awayLower = awayEn.toLowerCase();
+  const candidates = markets.filter(m => !String(m.groupItemTitle || '').toLowerCase().includes('halftime'));
+  const home = candidates.find(m => normalizedMarketTitle(m) === homeLower && /\bwin\b/i.test(String(m.question || '')));
+  const away = candidates.find(m => normalizedMarketTitle(m) === awayLower && /\bwin\b/i.test(String(m.question || '')));
+  const draw = candidates.find(m => normalizedMarketTitle(m).includes('draw') && /end in a draw/i.test(String(m.question || '')));
+  if (!home || !away || !draw) return null;
+  return {
+    home: { id: String(home.id), ...marketPrices(home) },
+    draw: { id: String(draw.id), ...marketPrices(draw) },
+    away: { id: String(away.id), ...marketPrices(away) },
+  };
+}
+
+function findSpreadMarket(markets: any[], homeEn: string): null | { id: string; yes: number; no: number } {
+  const homeLower = homeEn.toLowerCase();
+  const spread = markets.find(m => {
+    const title = normalizedMarketTitle(m);
+    return title.includes(homeLower) && title.includes('(-1.5)') && String(m.question || '').toLowerCase().includes('spread:');
+  });
+  if (!spread) return null;
+  return { id: String(spread.id), ...marketPrices(spread) };
+}
+
+function findTotal25Market(markets: any[]): null | { id: string; yes: number; no: number } {
+  const total = markets.find(m => normalizedMarketTitle(m) === 'o/u 2.5' || /o\/u 2\.5/i.test(String(m.question || '')));
+  if (!total) return null;
+  return { id: String(total.id), ...marketPrices(total) };
+}
+
+function upsertLocalMarket(
+  db: any,
+  matchId: number,
+  marketType: string,
+  description: string,
+  options: Array<{ label: string; price: number; sort: number }>,
+  stats: SyncStats,
+): void {
+  let market = db.prepare('SELECT id, description FROM markets WHERE match_id = ? AND market_type = ?').get(matchId, marketType) as any;
+  let marketId: number;
+  if (market) {
+    marketId = market.id;
+    if (market.description !== description) {
+      db.prepare('UPDATE markets SET description = ?, settled = 0, winning_option = NULL WHERE id = ?').run(description, marketId);
+    }
+  } else {
+    const result = db.prepare('INSERT INTO markets (match_id, market_type, description) VALUES (?, ?, ?)').run(matchId, marketType, description);
+    marketId = result.lastInsertRowid as number;
+  }
+
+  for (const opt of options) {
+    const existing = db.prepare('SELECT id, price FROM market_options WHERE market_id = ? AND sort_order = ?').get(marketId, opt.sort) as any;
+    if (existing) {
+      if (Math.abs(existing.price - opt.price) > 0.001) {
+        db.prepare('UPDATE market_options SET label = ?, price = ? WHERE id = ?').run(opt.label, opt.price, existing.id);
+        stats.oddsUpdated++;
+      } else {
+        db.prepare('UPDATE market_options SET label = ? WHERE id = ?').run(opt.label, existing.id);
+      }
+    } else {
+      db.prepare('INSERT INTO market_options (market_id, label, price, sort_order) VALUES (?, ?, ?, ?)')
+        .run(marketId, opt.label, opt.price, opt.sort);
+      stats.oddsUpdated++;
+    }
+  }
 }
 
 // ─── 步骤1: 发现赛事 ────────────────────────────────────────────────────
@@ -196,7 +511,7 @@ async function syncUpcomingEvents(stats: SyncStats): Promise<void> {
     }
   }
 
-  stats.eventsScanned = allEvents.length;
+  stats.eventsScanned += allEvents.length;
   console.log(`[automation] 拉取到 ${allEvents.length} 个活跃体育事件`);
 
   for (const event of allEvents) {

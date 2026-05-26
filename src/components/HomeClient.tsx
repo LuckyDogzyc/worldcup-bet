@@ -144,6 +144,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
     const tournament = tournaments.find(t => t.id === match.tournament_id);
     // 取第一个1x2盘口
     const mainMarket = match.markets.find(mk => mk.market_type === '1x2');
+    const spreadMarket = match.markets.find(mk => mk.market_type === 'spread');
     const ouMarket = match.markets.find(mk => mk.market_type === 'ou25');
 
     return (
@@ -185,6 +186,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
               {/* 赔率按钮行 */}
               <div className="space-y-2">
                 {mainMarket && renderOddsRow('胜负', mainMarket, match)}
+                {spreadMarket && renderOddsRow('让球', spreadMarket, match)}
                 {ouMarket && renderOddsRow('大小2.5', ouMarket, match)}
               </div>
             </>
