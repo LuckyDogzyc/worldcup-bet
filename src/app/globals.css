@@ -17,12 +17,20 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ── Mobile-first base ─────────────────────────────────── */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
 body {
   color: #e8eaed;
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   min-height: 100vh;
+  min-height: 100dvh; /* dynamic viewport height for mobile browsers */
   position: relative;
   overflow-x: hidden;
+  overscroll-behavior-y: contain; /* prevent pull-to-refresh on iOS */
 }
 
 /* Stadium background with overlay */
@@ -49,7 +57,7 @@ body::after {
   z-index: -1;
 }
 
-/* Scrollbar */
+/* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 5px;
 }
@@ -64,7 +72,7 @@ body::after {
   background: rgba(212, 175, 55, 0.5);
 }
 
-/* Custom animations */
+/* ── Custom animations ─────────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -72,6 +80,11 @@ body::after {
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUpMobile {
+  from { opacity: 0; transform: translateY(100%); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -92,7 +105,7 @@ body::after {
   animation: pulse-gold 2s infinite;
 }
 
-/* Glass card base - darker, more game-like */
+/* ── Glass card base ────────────────────────────────────── */
 .glass-card {
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(16px);
@@ -105,7 +118,7 @@ body::after {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Gold button - game style with glow */
+/* ── Gold button ────────────────────────────────────────── */
 .btn-gold {
   background: linear-gradient(135deg, #d4af37, #e6c85b);
   color: #0a0e1a;
@@ -129,7 +142,7 @@ body::after {
   box-shadow: none;
 }
 
-/* Price button - sporty odds button */
+/* ── Price button (odds) ────────────────────────────────── */
 .btn-price {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -144,6 +157,7 @@ body::after {
   align-items: center;
   justify-content: center;
   gap: 1px;
+  min-height: 44px; /* iOS touch target minimum */
 }
 .btn-price:hover {
   background: rgba(212, 175, 55, 0.12);
@@ -152,13 +166,14 @@ body::after {
 }
 .btn-price:active {
   transform: translateY(0);
+  background: rgba(212, 175, 55, 0.18);
 }
 .btn-price.bet-placed {
   background: rgba(212, 175, 55, 0.12);
   border-color: rgba(212, 175, 55, 0.35);
 }
 
-/* Pitch pattern - diagonal lines for game feel */
+/* ── Pitch pattern ──────────────────────────────────────── */
 .pitch-pattern {
   background-image:
     repeating-linear-gradient(
@@ -170,7 +185,7 @@ body::after {
     );
 }
 
-/* Match card live indicator */
+/* ── Live indicator ─────────────────────────────────────── */
 .live-dot {
   width: 6px;
   height: 6px;
@@ -180,7 +195,7 @@ body::after {
   display: inline-block;
 }
 
-/* Rules tooltip / guide */
+/* ── Rules tooltip / guide ──────────────────────────────── */
 .rules-badge {
   display: inline-flex;
   align-items: center;
@@ -229,4 +244,44 @@ body::after {
   transform: translateX(-50%);
   border: 6px solid transparent;
   border-top-color: rgba(59, 130, 246, 0.25);
+}
+
+/* ── Mobile input: prevent iOS zoom ─────────────────────── */
+/* iOS Safari auto-zooms when input font-size < 16px */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="email"],
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* ── Bottom nav safe area (iPhone notch / home bar) ─────── */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar on tournament tabs (mobile) */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Mobile modal: slide from bottom ────────────────────── */
+@media (max-width: 640px) {
+  .mobile-sheet {
+    animation: slideUpMobile 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    border-radius: 16px 16px 0 0;
+    max-height: 90dvh;
+    overflow-y: auto;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 }

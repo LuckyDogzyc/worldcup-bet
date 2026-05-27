@@ -80,8 +80,8 @@ function RulesGuide() {
         <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-3 animate-fade-in">
           {/* 胜负 */}
           <div className="flex gap-3">
-            <div className="shrink-0 w-16 text-right">
-              <span className="text-xs font-bold text-gold/80 px-2 py-0.5 rounded bg-gold/10">胜负</span>
+            <div className="shrink-0 w-14 text-right">
+              <span className="text-xs font-bold text-gold/80 px-1.5 py-0.5 rounded bg-gold/10">胜负</span>
             </div>
             <div className="text-white/50 text-xs leading-relaxed">
               猜常规时间赛果。<strong className="text-white/70">主胜</strong> = 主队赢球；<strong className="text-white/70">平局</strong> = 90分钟加伤停补时后打平；<strong className="text-white/70">客胜</strong> = 客队赢球。
@@ -92,27 +92,27 @@ function RulesGuide() {
 
           {/* 让球 */}
           <div className="flex gap-3">
-            <div className="shrink-0 w-16 text-right">
-              <span className="text-xs font-bold text-blue-300/80 px-2 py-0.5 rounded bg-blue-500/10">让球</span>
+            <div className="shrink-0 w-14 text-right">
+              <span className="text-xs font-bold text-blue-300/80 px-1.5 py-0.5 rounded bg-blue-500/10">让球</span>
             </div>
             <div className="text-white/50 text-xs leading-relaxed">
               强队需要在常规90分钟加伤停补时内赢够球数才算胜出。
-              <br />例：如果按钮写着 <strong className="text-white/70">巴西需赢2球以上</strong>，巴西 2:0、3:1 才算赢；只赢 1 球、打平或输球都不算赢。
-              <br />如果按钮写着 <strong className="text-white/70">对手不输2球就赢</strong>，对手赢球、打平、或只输 1 球都算赢。
+              <br />例：按钮写着 <strong className="text-white/70">巴西需赢2球以上</strong>，巴西 2:0、3:1 才算赢。
+              <br />如果写着 <strong className="text-white/70">对手不输2球就赢</strong>，对手赢球、打平、或只输 1 球都算赢。
               <br />加时赛和点球大战进球不计入让球结算。
             </div>
           </div>
 
           {/* 大小球 */}
           <div className="flex gap-3">
-            <div className="shrink-0 w-16 text-right">
-              <span className="text-xs font-bold text-amber-300/80 px-2 py-0.5 rounded bg-amber-500/10">大小球</span>
+            <div className="shrink-0 w-14 text-right">
+              <span className="text-xs font-bold text-amber-300/80 px-1.5 py-0.5 rounded bg-amber-500/10">大小球</span>
             </div>
             <div className="text-white/50 text-xs leading-relaxed">
               猜双方常规90分钟加伤停补时内总进球数是否超过 2.5 球。
-              <br /><strong className="text-white/70">大于 2.5</strong>：总进球 ≥ 3 球算赢（如 2:1、3:0、2:2）。
-              <br /><strong className="text-white/70">小于 2.5</strong>：总进球 ≤ 2 球算赢（如 1:0、0:0、1:1）。
-              <br />加时赛和点球大战进球不计入大小球结算。
+              <br /><strong className="text-white/70">大于 2.5</strong>：总进球 ≥ 3（如 2:1、3:0）。
+              <br /><strong className="text-white/70">小于 2.5</strong>：总进球 ≤ 2（如 1:0、0:0）。
+              <br />加时赛和点球大战进球不计入。
             </div>
           </div>
 
@@ -131,7 +131,7 @@ function InlineRule({ type }: { type: string }) {
   const [open, setOpen] = useState(false);
   const tips: Record<string, string> = {
     '胜负': '只看常规90分钟+伤停补时：主胜=左侧主场球队赢；平局=90分钟打平；客胜=右侧客场球队赢。加时/点球不计入。',
-    '让球': '只看常规90分钟+伤停补时：一边是“需赢2球以上”，另一边是“不输2球就赢”。按按钮文字判断，不用记数字符号。',
+    '让球': '只看常规90分钟+伤停补时：一边是"需赢2球以上"，另一边是"不输2球就赢"。按按钮文字判断。',
     '大小2.5': '只看常规90分钟+伤停补时：两队总进球 ≥3 是大于2.5；总进球 ≤2 是小于等于2.5。',
   };
   const tip = tips[type];
@@ -147,13 +147,13 @@ function InlineRule({ type }: { type: string }) {
         }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        className="text-[10px] text-blue-300/70 hover:text-blue-200 ml-1 px-1 rounded-full bg-blue-500/10 border border-blue-400/20"
+        className="text-[10px] text-blue-300/70 hover:text-blue-200 ml-1 px-1 rounded-full bg-blue-500/10 border border-blue-400/20 min-w-[18px] min-h-[18px] inline-flex items-center justify-center"
         aria-label={type + '规则说明'}
       >
         ⓘ
       </button>
       {open && (
-        <span className="absolute left-0 top-5 z-30 w-64 rounded-lg border border-blue-400/25 bg-[#07111f]/95 px-3 py-2 text-[11px] leading-relaxed text-white/75 shadow-2xl shadow-black/40 backdrop-blur">
+        <span className="absolute left-0 top-6 z-30 w-56 sm:w-64 rounded-lg border border-blue-400/25 bg-[#07111f]/95 px-3 py-2 text-[11px] leading-relaxed text-white/75 shadow-2xl shadow-black/40 backdrop-blur">
           {tip}
         </span>
       )}
@@ -250,7 +250,6 @@ export default function HomeClient({ username, balance: initialBalance }: { user
 
   const renderMatchCard = (match: Match) => {
     const tournament = tournaments.find(t => t.id === match.tournament_id);
-    // 取盘口
     const mainMarket = match.markets.find(mk => mk.market_type === '1x2');
     const spreadMarket = match.markets.find(mk => mk.market_type === 'spread');
     const ouMarket = match.markets.find(mk => mk.market_type === 'ou25');
@@ -258,28 +257,28 @@ export default function HomeClient({ username, balance: initialBalance }: { user
     return (
       <div key={match.id} className="glass-card overflow-hidden">
         {/* 顶部赛事信息栏 */}
-        <div className="px-4 py-2 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
-          <span className="text-[11px] text-white/40">
+        <div className="px-3 sm:px-4 py-2 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
+          <span className="text-[10px] sm:text-[11px] text-white/40 truncate">
             {tournament?.icon} {tournament?.name}
             {match.round_name && ` · ${match.round_name}`}
           </span>
-          <span className="text-[11px] text-white/30">{formatTime(match.kickoff_time)}</span>
+          <span className="text-[10px] sm:text-[11px] text-white/30 shrink-0 ml-2">{formatTime(match.kickoff_time)}</span>
         </div>
 
         {/* 队伍 + 赔率 */}
         <div className="p-3 sm:p-4">
-          {/* 主盘口：3列赔率 */}
+          {/* 主盘口：队伍信息 */}
           {mainMarket && (
-            <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-2">
-              <div className="text-right">
-                <span className="inline-flex items-center gap-1 text-[10px] text-blue-200/70 bg-blue-500/10 border border-blue-400/20 rounded-full px-2 py-0.5 mb-1">主场</span>
+            <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2 items-center mb-3">
+              <div className="text-right min-w-0">
+                <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] text-blue-200/70 bg-blue-500/10 border border-blue-400/20 rounded-full px-1.5 py-px mb-0.5">主场</span>
                 <TeamIdentity name={match.home_team} align="right" size="md" />
               </div>
-              <div className="text-center px-2">
-                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-gold/15 text-gold/70 border border-gold/20">VS</span>
+              <div className="text-center px-1 sm:px-2">
+                <span className="text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full bg-gold/15 text-gold/70 border border-gold/20">VS</span>
               </div>
-              <div>
-                <span className="inline-flex items-center gap-1 text-[10px] text-amber-200/70 bg-amber-500/10 border border-amber-400/20 rounded-full px-2 py-0.5 mb-1">客场</span>
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] text-amber-200/70 bg-amber-500/10 border border-amber-400/20 rounded-full px-1.5 py-px mb-0.5">客场</span>
                 <TeamIdentity name={match.away_team} align="left" size="md" />
               </div>
             </div>
@@ -307,7 +306,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
           <InlineRule type={label} />
           {hasBet && <span className="text-[9px] text-gold/60">已下注✓</span>}
         </div>
-        <div className={`grid ${cols} gap-1.5`}>
+        <div className={`grid ${cols} gap-1.5 sm:gap-2`}>
           {market.options.map(opt => {
             const odds = priceToOdds(opt.price);
             const display = formatMarketOptionLabel(market.market_type, opt.label);
@@ -317,11 +316,11 @@ export default function HomeClient({ username, balance: initialBalance }: { user
                 onClick={() => !hasBet && setModal({ match, market, option: opt })}
                 disabled={hasBet}
                 aria-label={`${display.accessible} ${odds}倍`}
-                className={`btn-price py-1.5 px-2 ${hasBet ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`btn-price py-2 px-1.5 sm:px-2 ${hasBet ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="text-[11px] text-white/50 leading-tight">{display.primary}</div>
-                {display.secondary && <div className="text-[9px] text-white/35 leading-tight mt-0.5">{display.secondary}</div>}
-                <div className={`text-sm font-bold ${oddsColor(opt.price)}`}>{odds}</div>
+                <div className="text-[10px] sm:text-[11px] text-white/50 leading-tight line-clamp-2">{display.primary}</div>
+                {display.secondary && <div className="text-[9px] text-white/35 leading-tight mt-0.5 line-clamp-1">{display.secondary}</div>}
+                <div className={`text-sm sm:text-base font-bold ${oddsColor(opt.price)}`}>{odds}</div>
               </button>
             );
           })}
@@ -335,35 +334,33 @@ export default function HomeClient({ username, balance: initialBalance }: { user
   const renderFinishedSection = () => {
     if (finishedMatches.length === 0) return null;
     return (
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-white/60 mb-4 flex items-center gap-2">
-          <span className="text-xl">📊</span>
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-base sm:text-lg font-bold text-white/60 mb-3 sm:mb-4 flex items-center gap-2">
+          <span className="text-lg sm:text-xl">📊</span>
           比赛结果
-          <span className="text-sm text-white/30 font-normal ml-1">({finishedMatches.length})</span>
+          <span className="text-xs sm:text-sm text-white/30 font-normal ml-1">({finishedMatches.length})</span>
         </h2>
         <div className="space-y-2">
           {finishedMatches.map(match => {
             const tournament = tournaments.find(t => t.id === match.tournament_id);
             return (
-              <div key={match.id} className="glass-card px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className={(match.result_home ?? 0) > (match.result_away ?? 0) ? 'text-gold' : 'text-white/70'}>
-                        <TeamIdentity name={match.home_team} align="left" />
-                      </span>
-                      <span className="text-white/90 font-black text-lg px-1.5 py-0.5 rounded bg-white/5">
-                        {match.result_home ?? '-'} : {match.result_away ?? '-'}
-                      </span>
-                      <span className={(match.result_away ?? 0) > (match.result_home ?? 0) ? 'text-gold' : 'text-white/70'}>
-                        <TeamIdentity name={match.away_team} align="left" />
-                      </span>
-                    </div>
+              <div key={match.id} className="glass-card px-3 sm:px-4 py-2.5 sm:py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-sm min-w-0 overflow-hidden">
+                    <span className={(match.result_home ?? 0) > (match.result_away ?? 0) ? 'text-gold' : 'text-white/70'}>
+                      <TeamIdentity name={match.home_team} align="left" />
+                    </span>
+                    <span className="text-white/90 font-black text-base sm:text-lg px-1 py-0.5 rounded bg-white/5 shrink-0">
+                      {match.result_home ?? '-'} : {match.result_away ?? '-'}
+                    </span>
+                    <span className={(match.result_away ?? 0) > (match.result_home ?? 0) ? 'text-gold' : 'text-white/70'}>
+                      <TeamIdentity name={match.away_team} align="left" />
+                    </span>
                     {match.result_home === match.result_away && match.result_home !== null && (
-                      <span className="text-[10px] text-amber-300/60 px-1.5 py-0.5 rounded bg-amber-300/10">平局</span>
+                      <span className="text-[9px] sm:text-[10px] text-amber-300/60 px-1 py-0.5 rounded bg-amber-300/10 shrink-0">平局</span>
                     )}
                   </div>
-                  <div className="text-right shrink-0 ml-3">
+                  <div className="text-right shrink-0 hidden sm:block">
                     <div className="text-[10px] text-white/25">
                       {tournament?.icon} {match.round_name}
                     </div>
@@ -387,32 +384,32 @@ export default function HomeClient({ username, balance: initialBalance }: { user
 
   const tabBase = 'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap';
   const tabActive = 'bg-gold/20 text-gold border border-gold/30';
-  const tabInactive = 'bg-white/5 text-white/50 hover:bg-white/10';
+  const tabInactive = 'bg-white/5 text-white/50 hover:bg-white/10 active:bg-white/15';
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-4 relative z-10">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4 relative z-10">
       {/* Welcome banner - compact */}
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+      <div className="mb-3 sm:mb-4 flex items-center justify-between">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight">
             ⚽ 体育竞猜
           </h1>
-          <p className="text-white/30 text-xs mt-0.5">
-            欢迎，<span className="text-white/60">{username}</span> · 赔率来自 Polymarket
+          <p className="text-white/30 text-[10px] sm:text-xs mt-0.5">
+            欢迎，<span className="text-white/60">{username}</span>
           </p>
         </div>
-        <div className="glass-card px-4 py-2 text-right">
-          <div className="text-[10px] text-white/30 uppercase tracking-wider">余额</div>
-          <div className="text-lg font-black text-gold">${balance.toFixed(2)}</div>
+        <div className="glass-card px-3 sm:px-4 py-1.5 sm:py-2 text-right shrink-0">
+          <div className="text-[9px] sm:text-[10px] text-white/30 uppercase tracking-wider">余额</div>
+          <div className="text-base sm:text-lg font-black text-gold">${balance.toFixed(2)}</div>
         </div>
       </div>
 
       {/* Rules guide */}
       <RulesGuide />
 
-      {/* Tournament tabs */}
+      {/* Tournament tabs - scrollable on mobile */}
       {tournaments.length > 0 && (
-        <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="mb-3 sm:mb-4 flex gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
           <button
             onClick={() => setActiveTournament(null)}
             className={`${tabBase} ${activeTournament === null ? tabActive : tabInactive}`}
@@ -434,16 +431,16 @@ export default function HomeClient({ username, balance: initialBalance }: { user
         </div>
       )}
 
-      {/* 已结束比赛 — 放在最上面，像新闻赛果 */}
+      {/* 已结束比赛 */}
       {renderFinishedSection()}
 
       {/* 进行中 / 即将开始的比赛 */}
       {upcomingMatches.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-            <span className="text-xl">🏟️</span>
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <span className="text-lg sm:text-xl">🏟️</span>
             比赛投注
-            <span className="text-sm text-white/30 font-normal ml-1">({upcomingMatches.length})</span>
+            <span className="text-xs sm:text-sm text-white/30 font-normal ml-1">({upcomingMatches.length})</span>
           </h2>
           <div className="space-y-3">
             {upcomingMatches.map(match => renderMatchCard(match))}
@@ -459,7 +456,7 @@ export default function HomeClient({ username, balance: initialBalance }: { user
         </div>
       )}
 
-      <div className="text-center text-white/20 text-[10px] mt-6 pb-4">
+      <div className="text-center text-white/20 text-[10px] mt-4 sm:mt-6 pb-2 sm:pb-4">
         赔率每分钟自动刷新 · 上次更新 {lastRefresh.toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })}
       </div>
 

@@ -30,11 +30,6 @@ export default function LeaderboardClient() {
   }, []);
 
   const medals = ['🥇', '🥈', '🥉'];
-  const rowColors = [
-    'bg-gold/15 border-gold/30',
-    'bg-gray-400/10 border-gray-400/20',
-    'bg-amber-700/10 border-amber-700/20',
-  ];
 
   if (loading) {
     return (
@@ -55,13 +50,13 @@ export default function LeaderboardClient() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center gap-2">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-3xl font-bold text-white flex items-center justify-center gap-2">
           🏆 排行榜
         </h1>
-        <p className="text-white/40 text-sm mt-1">谁是竞猜之王？</p>
+        <p className="text-white/40 text-xs sm:text-sm mt-1">谁是竞猜之王？</p>
       </div>
 
       {data.length === 0 ? (
@@ -74,39 +69,75 @@ export default function LeaderboardClient() {
         <>
           {/* Top 3 podium */}
           {data.length >= 3 && (
-            <div className="flex items-end justify-center gap-3 mb-8">
+            <div className="flex items-end justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
               {/* 2nd place */}
               <div className="text-center">
-                <div className="text-3xl mb-1">🥈</div>
-                <Link href={'/players/' + data[1].id} className="glass-card block px-4 pt-3 pb-4 border-gray-400/20 w-28 hover:border-gray-300/40 hover:bg-white/10 transition-all">
-                  <p className="text-white font-bold text-sm truncate">{data[1].username}</p>
-                  <p className="text-white/50 text-xs mt-1">${data[1].total_assets.toFixed(0)}</p>
-                  <p className="text-white/25 text-[10px] mt-1">查看档案</p>
+                <div className="text-2xl sm:text-3xl mb-1">🥈</div>
+                <Link href={'/players/' + data[1].id} className="glass-card block px-3 sm:px-4 pt-2.5 sm:pt-3 pb-3 sm:pb-4 border-gray-400/20 w-24 sm:w-28 hover:border-gray-300/40 hover:bg-white/10 transition-all">
+                  <p className="text-white font-bold text-xs sm:text-sm truncate">{data[1].username}</p>
+                  <p className="text-white/50 text-[10px] sm:text-xs mt-1">${data[1].total_assets.toFixed(0)}</p>
+                  <p className="text-white/25 text-[9px] sm:text-[10px] mt-0.5">查看档案</p>
                 </Link>
               </div>
               {/* 1st place */}
               <div className="text-center">
-                <div className="text-4xl mb-1">🥇</div>
-                <Link href={'/players/' + data[0].id} className="glass-card block px-5 pt-4 pb-5 border-gold/30 w-32 hover:border-gold/50 hover:bg-gold/10 transition-all">
-                  <p className="text-gold font-bold text-base truncate">{data[0].username}</p>
-                  <p className="text-gold/70 text-sm mt-1 font-bold">${data[0].total_assets.toFixed(0)}</p>
-                  <p className="text-gold/35 text-[10px] mt-1">查看档案</p>
+                <div className="text-3xl sm:text-4xl mb-1">🥇</div>
+                <Link href={'/players/' + data[0].id} className="glass-card block px-4 sm:px-5 pt-3 sm:pt-4 pb-4 sm:pb-5 border-gold/30 w-28 sm:w-32 hover:border-gold/50 hover:bg-gold/10 transition-all">
+                  <p className="text-gold font-bold text-sm sm:text-base truncate">{data[0].username}</p>
+                  <p className="text-gold/70 text-xs sm:text-sm mt-1 font-bold">${data[0].total_assets.toFixed(0)}</p>
+                  <p className="text-gold/35 text-[9px] sm:text-[10px] mt-0.5">查看档案</p>
                 </Link>
               </div>
               {/* 3rd place */}
               <div className="text-center">
-                <div className="text-3xl mb-1">🥉</div>
-                <Link href={'/players/' + data[2].id} className="glass-card block px-4 pt-2 pb-3 border-amber-700/20 w-28 hover:border-amber-500/40 hover:bg-white/10 transition-all">
-                  <p className="text-white font-bold text-sm truncate">{data[2].username}</p>
-                  <p className="text-white/50 text-xs mt-1">${data[2].total_assets.toFixed(0)}</p>
-                  <p className="text-white/25 text-[10px] mt-1">查看档案</p>
+                <div className="text-2xl sm:text-3xl mb-1">🥉</div>
+                <Link href={'/players/' + data[2].id} className="glass-card block px-3 sm:px-4 pt-2 pb-2.5 sm:pb-3 border-amber-700/20 w-24 sm:w-28 hover:border-amber-500/40 hover:bg-white/10 transition-all">
+                  <p className="text-white font-bold text-xs sm:text-sm truncate">{data[2].username}</p>
+                  <p className="text-white/50 text-[10px] sm:text-xs mt-1">${data[2].total_assets.toFixed(0)}</p>
+                  <p className="text-white/25 text-[9px] sm:text-[10px] mt-0.5">查看档案</p>
                 </Link>
               </div>
             </div>
           )}
 
-          {/* Full table */}
-          <div className="glass-card overflow-hidden">
+          {/* Full ranking list - card style on mobile, table on desktop */}
+          {/* Mobile: card layout */}
+          <div className="sm:hidden space-y-2">
+            {data.map((entry, idx) => {
+              const isMe = entry.id === currentUserId;
+              return (
+                <Link
+                  key={entry.id}
+                  href={'/players/' + entry.id}
+                  className={`glass-card flex items-center gap-3 px-3 py-2.5 transition-all active:bg-white/10 ${
+                    isMe ? 'border-blue-500/30 bg-blue-500/10' : ''
+                  }`}
+                >
+                  <div className="shrink-0 w-8 text-center">
+                    {idx < 3 ? (
+                      <span className="text-lg">{medals[idx]}</span>
+                    ) : (
+                      <span className="text-white/40 text-sm">{idx + 1}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium text-sm truncate ${isMe ? 'text-gold' : 'text-white'}`}>
+                      {entry.username}
+                      {isMe && <span className="text-[10px] text-gold/60 ml-1">(我)</span>}
+                    </p>
+                    <p className="text-white/30 text-[10px]">持仓 ${entry.unsettled_bets_value.toFixed(0)}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-white font-bold text-sm">${entry.total_assets.toFixed(0)}</p>
+                    <p className="text-white/25 text-[9px]">总资产</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Desktop: table layout */}
+          <div className="hidden sm:block glass-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -121,6 +152,11 @@ export default function LeaderboardClient() {
                 <tbody>
                   {data.map((entry, idx) => {
                     const isMe = entry.id === currentUserId;
+                    const rowColors = [
+                      'bg-gold/15 border-gold/30',
+                      'bg-gray-400/10 border-gray-400/20',
+                      'bg-amber-700/10 border-amber-700/20',
+                    ];
                     const topStyle = idx < 3 ? rowColors[idx] : '';
                     return (
                       <tr

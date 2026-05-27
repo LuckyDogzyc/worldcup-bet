@@ -65,7 +65,6 @@ export default function ProfileClient() {
   const unsettled = bets.filter((b) => b.status === 'pending');
   const settled = bets.filter((b) => b.status !== 'pending');
 
-  // Fix: Net P&L = total won payouts - total lost stakes (not all invested)
   const totalInvested = bets.reduce((s, b) => s + b.amount, 0);
   const totalWon = settled.filter((b) => b.status === 'won').reduce((s, b) => s + b.estimated_payout, 0);
   const totalLost = settled.filter((b) => b.status === 'lost').reduce((s, b) => s + b.amount, 0);
@@ -92,36 +91,36 @@ export default function ProfileClient() {
   const activeBets = tab === 'unsettled' ? unsettled : settled;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {/* User info */}
       {user && (
-        <div className="glass-card p-5 mb-6 flex items-center justify-between">
+        <div className="glass-card p-4 sm:p-5 mb-4 sm:mb-6 flex items-center justify-between">
           <div>
-            <p className="text-white/40 text-xs">用户名</p>
-            <p className="text-white font-bold text-lg">{user.username}</p>
+            <p className="text-white/40 text-[10px] sm:text-xs">用户名</p>
+            <p className="text-white font-bold text-base sm:text-lg">{user.username}</p>
           </div>
           <div className="text-right">
-            <p className="text-white/40 text-xs">当前余额</p>
-            <p className="text-gold font-black text-2xl">${user.balance.toFixed(2)}</p>
+            <p className="text-white/40 text-[10px] sm:text-xs">当前余额</p>
+            <p className="text-gold font-black text-xl sm:text-2xl">${user.balance.toFixed(2)}</p>
           </div>
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="glass-card p-3 text-center">
-          <p className="text-[10px] text-white/40 mb-1">总投入</p>
-          <p className="text-white font-bold text-sm">${totalInvested.toFixed(2)}</p>
+      {/* Stats - 2x2 on mobile, 3 cols on desktop */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="glass-card p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] text-white/40 mb-0.5">总投入</p>
+          <p className="text-white font-bold text-xs sm:text-sm">${totalInvested.toFixed(2)}</p>
         </div>
-        <div className="glass-card p-3 text-center">
-          <p className="text-[10px] text-white/40 mb-1">总收益</p>
-          <p className={`font-bold text-sm ${totalWon > 0 ? 'text-green-400' : 'text-white/50'}`}>
+        <div className="glass-card p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] text-white/40 mb-0.5">总收益</p>
+          <p className={`font-bold text-xs sm:text-sm ${totalWon > 0 ? 'text-green-400' : 'text-white/50'}`}>
             ${totalWon.toFixed(2)}
           </p>
         </div>
-        <div className="glass-card p-3 text-center">
-          <p className="text-[10px] text-white/40 mb-1">净盈亏</p>
-          <p className={`font-bold text-sm ${netPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+        <div className="glass-card p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] text-white/40 mb-0.5">净盈亏</p>
+          <p className={`font-bold text-xs sm:text-sm ${netPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {netPL >= 0 ? '+' : ''}${Math.abs(netPL).toFixed(2)}
           </p>
         </div>
@@ -132,7 +131,7 @@ export default function ProfileClient() {
         <button
           onClick={() => setTab('unsettled')}
           className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-            tab === 'unsettled' ? 'bg-gold/20 text-gold' : 'text-white/50 hover:text-white/70'
+            tab === 'unsettled' ? 'bg-gold/20 text-gold' : 'text-white/50 hover:text-white/70 active:bg-white/10'
           }`}
         >
           未结算 ({unsettled.length})
@@ -140,7 +139,7 @@ export default function ProfileClient() {
         <button
           onClick={() => setTab('settled')}
           className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-            tab === 'settled' ? 'bg-gold/20 text-gold' : 'text-white/50 hover:text-white/70'
+            tab === 'settled' ? 'bg-gold/20 text-gold' : 'text-white/50 hover:text-white/70 active:bg-white/10'
           }`}
         >
           已结算 ({settled.length})
@@ -148,7 +147,7 @@ export default function ProfileClient() {
       </div>
 
       {/* Bets list */}
-      <div className="space-y-3">
+      <div className="space-y-2.5 sm:space-y-3">
         {activeBets.map((bet) => {
           const isWon = bet.status === 'won';
           const isLost = bet.status === 'lost';
@@ -157,44 +156,44 @@ export default function ProfileClient() {
           return (
             <div
               key={bet.id}
-              className={`glass-card p-4 border-l-4 ${
+              className={`glass-card p-3 sm:p-4 border-l-4 ${
                 isWon ? 'border-l-green-500' : isLost ? 'border-l-red-500' : 'border-l-gold'
               }`}
             >
               {/* Match info */}
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                     <TeamIdentity name={bet.match.home_team} />
-                    <span className="text-gold/50 font-black">vs</span>
+                    <span className="text-gold/50 font-black shrink-0">vs</span>
                     <TeamIdentity name={bet.match.away_team} />
                   </div>
                   {bet.match.round_name && (
-                    <p className="text-white/30 text-[10px]">{bet.match.round_name}</p>
+                    <p className="text-white/30 text-[9px] sm:text-[10px] mt-0.5">{bet.match.round_name}</p>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   {bet.status === 'pending' && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-gold/15 text-gold">待结算</span>
+                    <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-gold/15 text-gold">待结算</span>
                   )}
                   {isWon && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">✓ 中奖</span>
+                    <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">✓ 中奖</span>
                   )}
                   {isLost && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">✗ 未中</span>
+                    <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">✗ 未中</span>
                   )}
                 </div>
               </div>
 
               {/* Bet details */}
-              <div className="bg-white/[0.03] rounded-lg p-3 text-xs space-y-1.5">
+              <div className="bg-white/[0.03] rounded-lg p-2.5 sm:p-3 text-[10px] sm:text-xs space-y-1 sm:space-y-1.5">
                 <div className="flex justify-between">
                   <span className="text-white/40">市场</span>
                   <span className="text-white/70">{getMarketLabel(bet.market.type)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/40">选择</span>
-                  <span className="text-white font-medium text-right">{optionDisplay.accessible}</span>
+                  <span className="text-white font-medium text-right max-w-[60%] truncate">{optionDisplay.accessible}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/40">投入</span>
@@ -206,7 +205,7 @@ export default function ProfileClient() {
                     {priceToOdds(bet.price_at_bet)} 倍
                   </span>
                 </div>
-                <div className="flex justify-between border-t border-white/10 pt-1.5">
+                <div className="flex justify-between border-t border-white/10 pt-1 sm:pt-1.5">
                   <span className="text-white/40">
                     {bet.status === 'pending' ? '预计收益' : '实际收益'}
                   </span>
@@ -220,7 +219,7 @@ export default function ProfileClient() {
                 </div>
               </div>
 
-              <p className="text-white/20 text-[10px] mt-2">{formatDate(bet.created_at)}</p>
+              <p className="text-white/20 text-[9px] sm:text-[10px] mt-1.5 sm:mt-2">{formatDate(bet.created_at)}</p>
             </div>
           );
         })}
